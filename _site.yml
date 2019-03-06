@@ -1,0 +1,8 @@
+name: "R Template"
+output_dir: "docs"
+navbar:
+  title: "R Template"
+output:
+  html_document:
+    theme: cosmo
+    code_download: true

@@ -1,0 +1,15 @@
+---
+title: "R Template"
+author: '[Leonard Henriquez](https://github.com/leonard-henriquez/), [Adrien Lequiller](https://github.com/adrienlequiller) & [Eddy Ohayon](https://github.com/Eddoha55)'
+date: "`r Sys.Date()`"
+output: pdf_document
+always_allow_html: yes
+---
+
+```{r message=FALSE, warning=FALSE, include=FALSE}
+# Options
+knitr::opts_chunk$set(cache = TRUE, warning=FALSE)
+
+# Libraries
+library(dplyr)
+```
