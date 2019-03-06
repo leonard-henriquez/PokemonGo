@@ -286,9 +286,9 @@ summary(customer.RFM)</code></pre>
 ##  3rd Qu.:3774   3rd Qu.:2018-10-19   3rd Qu.:2.000   3rd Qu.: 14.97  
 ##  Max.   :4997   Max.   :2018-10-31   Max.   :4.000   Max.   :198.00</code></pre>
 <pre class="r"><code># Fetch all active customer
-customer.active &lt;- sessions.summer %&gt;% select(CustomerID) %&gt;% distinct(CustomerID)
+customerID.active &lt;- sessions.summer %&gt;% select(CustomerID) %&gt;% distinct(CustomerID)
 
-summary(customer.active)</code></pre>
+summary(customerID.active)</code></pre>
 <pre><code>##    CustomerID  
 ##  Min.   :   1  
 ##  1st Qu.:1252  
@@ -297,7 +297,7 @@ summary(customer.active)</code></pre>
 ##  3rd Qu.:3751  
 ##  Max.   :5000</code></pre>
 <pre class="r"><code># Calculate the RFM value for active customers
-customer.active.RFM &lt;- customer.active %&gt;%
+customer.active.RFM &lt;- customerID.active %&gt;%
   left_join(customer.RFM, by = &quot;CustomerID&quot;) %&gt;%
   mutate(Frequency = replace_na(Frequency, 0), Monetary = replace_na(Monetary, 0))
 
@@ -310,8 +310,135 @@ summary(customer.active.RFM)</code></pre>
 ##  3rd Qu.:3751   3rd Qu.:2018-10-19   3rd Qu.:0.0000   3rd Qu.:  0.000  
 ##  Max.   :5000   Max.   :2018-10-31   Max.   :4.0000   Max.   :198.000  
 ##                 NA&#39;s   :4131</code></pre>
+<pre class="r"><code>customer.active &lt;- customer.active.RFM %&gt;%
+  left_join(customer, by = &#39;CustomerID&#39;) %&gt;%
+  select(-X)
 
-<div id="rmd-source-code">LS0tDQp0aXRsZTogIlBva2Vtb25HbyBjdXN0b21lciBhbmFseXRpY3MiDQphdXRob3I6ICdbTGVvbmFyZCBIZW5yaXF1ZXpdKGh0dHBzOi8vZ2l0aHViLmNvbS9sZW9uYXJkLWhlbnJpcXVlei8pLCBbQWRyaWVuIExlcXVpbGxlcl0oaHR0cHM6Ly9naXRodWIuY29tL2FkcmllbmxlcXVpbGxlcikgJiBbRWRkeSBPaGF5b25dKGh0dHBzOi8vZ2l0aHViLmNvbS9FZGRvaGE1NSknDQpkYXRlOiAiYHIgU3lzLkRhdGUoKWAiDQpvdXRwdXQ6IHBkZl9kb2N1bWVudA0KYWx3YXlzX2FsbG93X2h0bWw6IHllcw0KLS0tDQoNCmBgYHtyIG1lc3NhZ2U9RkFMU0UsIHdhcm5pbmc9RkFMU0UsIGluY2x1ZGU9RkFMU0V9DQojIE9wdGlvbnMNCmtuaXRyOjpvcHRzX2NodW5rJHNldChjYWNoZSA9IFRSVUUsIHdhcm5pbmc9RkFMU0UpDQoNCiMgTGlicmFyaWVzDQpsaWJyYXJ5KGRwbHlyKQ0KbGlicmFyeSh0aWR5cikNCmBgYA0KDQpGaXJzdCwgbGV0J3Mgc3RhcnQgYnkgcmVhZGluZyB0aGUgZGF0YQ0KYGBge3J9DQojIEltcG9ydCBjdXN0b21lcnMnIGRhdGENCmN1c3RvbWVyICAgICAgICA8LSByZWFkLmNzdigiaW5wdXQvY3VzdG9tZXJkYXRhLmNzdiIgKQ0KDQojIEltcG9ydCB0cmFuc2FjdGlvbnMNCnR4LmZhbGwgICAgICAgICA8LSByZWFkLmNzdigiaW5wdXQvZmFsbGZpbnRyeC5jc3YiICAgKQ0KdHguc3VtbWVyICAgICAgIDwtIHJlYWQuY3N2KCJpbnB1dC9zdW1tZXJmaW50cnguY3N2IiApDQp0eC5hbGwgPC0gdHguZmFsbCAlPiUgdW5pb24odHguc3VtbWVyKQ0KDQojIEltcG9ydCBzZXNzaW9ucw0Kc2Vzc2lvbnMuZmFsbCAgIDwtIHJlYWQuY3N2KCJpbnB1dC9mYWxsc2Vzc3RyeC5jc3YiICApDQpzZXNzaW9ucy5zdW1tZXIgPC0gcmVhZC5jc3YoImlucHV0L3N1bW1lcnNlc3N0cnguY3N2IikNCnNlc3Npb25zLmFsbCA8LSBzZXNzaW9ucy5mYWxsICU+JSB1bmlvbihzZXNzaW9ucy5zdW1tZXIpDQpgYGANCg0KYGBge3J9DQpzdW1tYXJ5KGN1c3RvbWVyKQ0KYGBgDQpgYGB7cn0NCiMgQWRkZWQgbW9uZXRhcnkgdmFsdWUgb2YgZWFjaCB0cmFuc2FjdGlvbiBhbmQgY29udmVydGVkIGRhdGENCnR4LmFsbCA8LSB0eC5mYWxsICU+JSBtdXRhdGUoVmFsdWUgPSBjKDIuOTksIDQuOTksIDkuOTksIDI1LCA5OSlbUHJvZHVjdElEXSwgRGF0ZSA9IGFzLkRhdGUoRGF0ZSkpDQoNCnN1bW1hcnkodHguYWxsKQ0KYGBgDQoNCg0KYGBge3J9DQojIENhbGN1bGF0ZWQgUkZNIGJhc2VkIG9uIGFsbCB0cmFuc2FjdGlvbnMgKHN1bW1lciBhbmQgZmFsbCkNCiMgZm9yIGVhY2ggY3VzdG9tZXIgKHdobyBtYWRlIGF0IGxlYXN0IG9uZSB0cmFuc2FjdGlvbikNCmN1c3RvbWVyLlJGTSA8LSB0eC5hbGwgJT4lDQogIGlubmVyX2pvaW4oY3VzdG9tZXIsIGJ5ID0gJ0N1c3RvbWVySUQnKSAlPiUNCiAgZ3JvdXBfYnkoQ3VzdG9tZXJJRCkgJT4lDQogIHN1bW1hcmlzZShSZWNlbmN5ID0gbWF4KERhdGUpLCBGcmVxdWVuY3kgPSBuKCksIE1vbmV0YXJ5ID0gc3VtKFZhbHVlKSkNCg0Kc3VtbWFyeShjdXN0b21lci5SRk0pDQpgYGANCg0KDQpgYGB7cn0NCiMgRmV0Y2ggYWxsIGFjdGl2ZSBjdXN0b21lcg0KY3VzdG9tZXIuYWN0aXZlIDwtIHNlc3Npb25zLnN1bW1lciAlPiUgc2VsZWN0KEN1c3RvbWVySUQpICU+JSBkaXN0aW5jdChDdXN0b21lcklEKQ0KDQpzdW1tYXJ5KGN1c3RvbWVyLmFjdGl2ZSkNCmBgYA0KDQpgYGB7cn0NCiMgQ2FsY3VsYXRlIHRoZSBSRk0gdmFsdWUgZm9yIGFjdGl2ZSBjdXN0b21lcnMNCmN1c3RvbWVyLmFjdGl2ZS5SRk0gPC0gY3VzdG9tZXIuYWN0aXZlICU+JQ0KICBsZWZ0X2pvaW4oY3VzdG9tZXIuUkZNLCBieSA9ICJDdXN0b21lcklEIikgJT4lDQogIG11dGF0ZShGcmVxdWVuY3kgPSByZXBsYWNlX25hKEZyZXF1ZW5jeSwgMCksIE1vbmV0YXJ5ID0gcmVwbGFjZV9uYShNb25ldGFyeSwgMCkpDQoNCnN1bW1hcnkoY3VzdG9tZXIuYWN0aXZlLlJGTSkNCmBgYA0KDQoNCg==</div>
+customer.stats &lt;- sessions.all %&gt;%
+  group_by(CustomerID) %&gt;%
+  select(-c(X, PlayID, Date)) %&gt;%
+  summarise_all(funs(sum))
+
+customer.active &lt;- customer.active %&gt;%
+  left_join(customer.stats, by = &quot;CustomerID&quot;)
+
+summary(customer.active)</code></pre>
+<pre><code>##    CustomerID      Recency             Frequency         Monetary      
+##  Min.   :   1   Min.   :2018-09-02   Min.   :0.0000   Min.   :  0.000  
+##  1st Qu.:1252   1st Qu.:2018-09-16   1st Qu.:0.0000   1st Qu.:  0.000  
+##  Median :2506   Median :2018-10-02   Median :0.0000   Median :  0.000  
+##  Mean   :2502   Mean   :2018-10-02   Mean   :0.1819   Mean   :  1.622  
+##  3rd Qu.:3751   3rd Qu.:2018-10-19   3rd Qu.:0.0000   3rd Qu.:  0.000  
+##  Max.   :5000   Max.   :2018-10-31   Max.   :4.0000   Max.   :198.000  
+##                 NA&#39;s   :4131                                           
+##   CustomerType     Registrationdate      Sex              Age       
+##  Min.   :1.000   2018-03-07:  30    Min.   :0.0000   Min.   : 6.00  
+##  1st Qu.:1.000   2018-03-23:  29    1st Qu.:0.0000   1st Qu.:18.00  
+##  Median :2.000   2018-03-25:  29    Median :0.0000   Median :27.00  
+##  Mean   :2.509   2018-04-27:  28    Mean   :0.4032   Mean   :27.58  
+##  3rd Qu.:4.000   2018-02-01:  27    3rd Qu.:1.0000   3rd Qu.:33.00  
+##  Max.   :4.000   2018-04-19:  27    Max.   :1.0000   Max.   :80.00  
+##                  (Other)   :4547                                    
+##    fallbonus          Income        Experience       Pokestops     
+##  Min.   :0.0000   Min.   :1.000   Min.   :  1767   Min.   : 10.00  
+##  1st Qu.:0.0000   1st Qu.:1.000   1st Qu.: 14127   1st Qu.: 52.00  
+##  Median :0.0000   Median :2.000   Median : 22257   Median : 80.00  
+##  Mean   :0.2006   Mean   :2.014   Mean   : 25343   Mean   : 87.36  
+##  3rd Qu.:0.0000   3rd Qu.:3.000   3rd Qu.: 32654   3rd Qu.:116.00  
+##  Max.   :1.0000   Max.   :3.000   Max.   :142475   Max.   :306.00  
+##                                                                    
+##       Gyms            Raids            Social          Pokemons    
+##  Min.   :  2.00   Min.   : 0.000   Min.   : 0.000   Min.   :  4.0  
+##  1st Qu.: 23.00   1st Qu.: 0.000   1st Qu.: 1.000   1st Qu.: 56.0  
+##  Median : 37.00   Median : 1.000   Median : 3.000   Median : 91.0  
+##  Mean   : 41.79   Mean   : 4.105   Mean   : 6.477   Mean   :104.5  
+##  3rd Qu.: 56.00   3rd Qu.: 6.000   3rd Qu.: 7.000   3rd Qu.:137.0  
+##  Max.   :173.00   Max.   :67.000   Max.   :68.000   Max.   :508.0  
+##                                                                    
+##     Distance           Duration      
+##  Min.   :  0.4499   Min.   :  11.65  
+##  1st Qu.:  7.6630   1st Qu.: 128.42  
+##  Median : 13.9331   Median : 219.12  
+##  Mean   : 19.9418   Mean   : 367.02  
+##  3rd Qu.: 25.8832   3rd Qu.: 400.44  
+##  Max.   :129.1368   Max.   :3343.66  
+## </code></pre>
+<pre class="r"><code># Registration period
+days_in_registration_period &lt;- as.numeric(as.Date(max(sessions.all$Date)) - as.Date(min(as.Date(customer$Registrationdate))))
+
+# Period of time of transactions
+days_in_period &lt;- as.numeric(as.Date(max(sessions.all$Date)) - as.Date(min(sessions.all$Date)))
+
+total_daily_revenues &lt;- sum(tx.all$Value) / days_in_period
+total_daily_marketing_cost &lt;- 0.15 * total_daily_revenues
+total_marketing_cost_in_registration_period &lt;- total_daily_marketing_cost * days_in_registration_period
+AC = total_marketing_cost_in_registration_period / count(customer)
+AC</code></pre>
+<pre><code>##          n
+## 1 1.074308</code></pre>
+<pre class="r"><code>CLV &lt;- function (r) {
+  # Period of time to convert revenue to (annual) recurring revenue
+  days_in_period &lt;- as.numeric(as.Date(max(sessions.all$Date)) - as.Date(min(sessions.all$Date)))
+  rr &lt;- r * 365 / days_in_period
+  
+  # Customer value
+  AC &lt;- 0       # Customer acquisition costs
+  rc &lt;- 0       # Recurring cost
+  m  &lt;- rr - rc # Customer recurring contribution margin
+  r  &lt;- 0.5     # Retention probability for the customer
+  t  &lt;- 5       # Number of years “out” to estimate
+  d  &lt;- 0.1     # Discount rate (Cost of Capital)
+  
+  clv &lt;- AC
+  for(i in 0:t) {
+    clv &lt;- clv+((r^i)*m/(1+d)^i)
+  }
+  return(clv)
+}</code></pre>
+<pre class="r"><code>clv &lt;- customer.active %&gt;% mutate(CLV = CLV(Monetary))
+summary(clv)</code></pre>
+<pre><code>##    CustomerID      Recency             Frequency         Monetary      
+##  Min.   :   1   Min.   :2018-09-02   Min.   :0.0000   Min.   :  0.000  
+##  1st Qu.:1252   1st Qu.:2018-09-16   1st Qu.:0.0000   1st Qu.:  0.000  
+##  Median :2506   Median :2018-10-02   Median :0.0000   Median :  0.000  
+##  Mean   :2502   Mean   :2018-10-02   Mean   :0.1819   Mean   :  1.622  
+##  3rd Qu.:3751   3rd Qu.:2018-10-19   3rd Qu.:0.0000   3rd Qu.:  0.000  
+##  Max.   :5000   Max.   :2018-10-31   Max.   :4.0000   Max.   :198.000  
+##                 NA&#39;s   :4131                                           
+##   CustomerType     Registrationdate      Sex              Age       
+##  Min.   :1.000   2018-03-07:  30    Min.   :0.0000   Min.   : 6.00  
+##  1st Qu.:1.000   2018-03-23:  29    1st Qu.:0.0000   1st Qu.:18.00  
+##  Median :2.000   2018-03-25:  29    Median :0.0000   Median :27.00  
+##  Mean   :2.509   2018-04-27:  28    Mean   :0.4032   Mean   :27.58  
+##  3rd Qu.:4.000   2018-02-01:  27    3rd Qu.:1.0000   3rd Qu.:33.00  
+##  Max.   :4.000   2018-04-19:  27    Max.   :1.0000   Max.   :80.00  
+##                  (Other)   :4547                                    
+##    fallbonus          Income        Experience       Pokestops     
+##  Min.   :0.0000   Min.   :1.000   Min.   :  1767   Min.   : 10.00  
+##  1st Qu.:0.0000   1st Qu.:1.000   1st Qu.: 14127   1st Qu.: 52.00  
+##  Median :0.0000   Median :2.000   Median : 22257   Median : 80.00  
+##  Mean   :0.2006   Mean   :2.014   Mean   : 25343   Mean   : 87.36  
+##  3rd Qu.:0.0000   3rd Qu.:3.000   3rd Qu.: 32654   3rd Qu.:116.00  
+##  Max.   :1.0000   Max.   :3.000   Max.   :142475   Max.   :306.00  
+##                                                                    
+##       Gyms            Raids            Social          Pokemons    
+##  Min.   :  2.00   Min.   : 0.000   Min.   : 0.000   Min.   :  4.0  
+##  1st Qu.: 23.00   1st Qu.: 0.000   1st Qu.: 1.000   1st Qu.: 56.0  
+##  Median : 37.00   Median : 1.000   Median : 3.000   Median : 91.0  
+##  Mean   : 41.79   Mean   : 4.105   Mean   : 6.477   Mean   :104.5  
+##  3rd Qu.: 56.00   3rd Qu.: 6.000   3rd Qu.: 7.000   3rd Qu.:137.0  
+##  Max.   :173.00   Max.   :67.000   Max.   :68.000   Max.   :508.0  
+##                                                                    
+##     Distance           Duration            CLV        
+##  Min.   :  0.4499   Min.   :  11.65   Min.   :  0.00  
+##  1st Qu.:  7.6630   1st Qu.: 128.42   1st Qu.:  0.00  
+##  Median : 13.9331   Median : 219.12   Median :  0.00  
+##  Mean   : 19.9418   Mean   : 367.02   Mean   :  5.91  
+##  3rd Qu.: 25.8832   3rd Qu.: 400.44   3rd Qu.:  0.00  
+##  Max.   :129.1368   Max.   :3343.66   Max.   :721.57  
+## </code></pre>
+
+<div id="rmd-source-code">LS0tDQp0aXRsZTogIlBva2Vtb25HbyBjdXN0b21lciBhbmFseXRpY3MiDQphdXRob3I6ICdbTGVvbmFyZCBIZW5yaXF1ZXpdKGh0dHBzOi8vZ2l0aHViLmNvbS9sZW9uYXJkLWhlbnJpcXVlei8pLCBbQWRyaWVuIExlcXVpbGxlcl0oaHR0cHM6Ly9naXRodWIuY29tL2FkcmllbmxlcXVpbGxlcikgJiBbRWRkeSBPaGF5b25dKGh0dHBzOi8vZ2l0aHViLmNvbS9FZGRvaGE1NSknDQpkYXRlOiAiYHIgU3lzLkRhdGUoKWAiDQpvdXRwdXQ6IHBkZl9kb2N1bWVudA0KYWx3YXlzX2FsbG93X2h0bWw6IHllcw0KLS0tDQoNCmBgYHtyIG1lc3NhZ2U9RkFMU0UsIHdhcm5pbmc9RkFMU0UsIGluY2x1ZGU9RkFMU0V9DQojIE9wdGlvbnMNCmtuaXRyOjpvcHRzX2NodW5rJHNldChjYWNoZSA9IFRSVUUsIHdhcm5pbmc9RkFMU0UpDQoNCiMgTGlicmFyaWVzDQpsaWJyYXJ5KGRwbHlyKQ0KbGlicmFyeSh0aWR5cikNCmBgYA0KDQpGaXJzdCwgbGV0J3Mgc3RhcnQgYnkgcmVhZGluZyB0aGUgZGF0YQ0KYGBge3J9DQojIEltcG9ydCBjdXN0b21lcnMnIGRhdGENCmN1c3RvbWVyICAgICAgICA8LSByZWFkLmNzdigiaW5wdXQvY3VzdG9tZXJkYXRhLmNzdiIgKQ0KDQojIEltcG9ydCB0cmFuc2FjdGlvbnMNCnR4LmZhbGwgICAgICAgICA8LSByZWFkLmNzdigiaW5wdXQvZmFsbGZpbnRyeC5jc3YiICAgKQ0KdHguc3VtbWVyICAgICAgIDwtIHJlYWQuY3N2KCJpbnB1dC9zdW1tZXJmaW50cnguY3N2IiApDQp0eC5hbGwgPC0gdHguZmFsbCAlPiUgdW5pb24odHguc3VtbWVyKQ0KDQojIEltcG9ydCBzZXNzaW9ucw0Kc2Vzc2lvbnMuZmFsbCAgIDwtIHJlYWQuY3N2KCJpbnB1dC9mYWxsc2Vzc3RyeC5jc3YiICApDQpzZXNzaW9ucy5zdW1tZXIgPC0gcmVhZC5jc3YoImlucHV0L3N1bW1lcnNlc3N0cnguY3N2IikNCnNlc3Npb25zLmFsbCA8LSBzZXNzaW9ucy5mYWxsICU+JSB1bmlvbihzZXNzaW9ucy5zdW1tZXIpDQpgYGANCg0KYGBge3J9DQpzdW1tYXJ5KGN1c3RvbWVyKQ0KYGBgDQpgYGB7cn0NCiMgQWRkZWQgbW9uZXRhcnkgdmFsdWUgb2YgZWFjaCB0cmFuc2FjdGlvbiBhbmQgY29udmVydGVkIGRhdGENCnR4LmFsbCA8LSB0eC5mYWxsICU+JSBtdXRhdGUoVmFsdWUgPSBjKDIuOTksIDQuOTksIDkuOTksIDI1LCA5OSlbUHJvZHVjdElEXSwgRGF0ZSA9IGFzLkRhdGUoRGF0ZSkpDQoNCnN1bW1hcnkodHguYWxsKQ0KYGBgDQoNCg0KYGBge3J9DQojIENhbGN1bGF0ZWQgUkZNIGJhc2VkIG9uIGFsbCB0cmFuc2FjdGlvbnMgKHN1bW1lciBhbmQgZmFsbCkNCiMgZm9yIGVhY2ggY3VzdG9tZXIgKHdobyBtYWRlIGF0IGxlYXN0IG9uZSB0cmFuc2FjdGlvbikNCmN1c3RvbWVyLlJGTSA8LSB0eC5hbGwgJT4lDQogIGlubmVyX2pvaW4oY3VzdG9tZXIsIGJ5ID0gJ0N1c3RvbWVySUQnKSAlPiUNCiAgZ3JvdXBfYnkoQ3VzdG9tZXJJRCkgJT4lDQogIHN1bW1hcmlzZShSZWNlbmN5ID0gbWF4KERhdGUpLCBGcmVxdWVuY3kgPSBuKCksIE1vbmV0YXJ5ID0gc3VtKFZhbHVlKSkNCg0Kc3VtbWFyeShjdXN0b21lci5SRk0pDQpgYGANCg0KDQpgYGB7cn0NCiMgRmV0Y2ggYWxsIGFjdGl2ZSBjdXN0b21lcg0KY3VzdG9tZXJJRC5hY3RpdmUgPC0gc2Vzc2lvbnMuc3VtbWVyICU+JSBzZWxlY3QoQ3VzdG9tZXJJRCkgJT4lIGRpc3RpbmN0KEN1c3RvbWVySUQpDQoNCnN1bW1hcnkoY3VzdG9tZXJJRC5hY3RpdmUpDQpgYGANCg0KYGBge3J9DQojIENhbGN1bGF0ZSB0aGUgUkZNIHZhbHVlIGZvciBhY3RpdmUgY3VzdG9tZXJzDQpjdXN0b21lci5hY3RpdmUuUkZNIDwtIGN1c3RvbWVySUQuYWN0aXZlICU+JQ0KICBsZWZ0X2pvaW4oY3VzdG9tZXIuUkZNLCBieSA9ICJDdXN0b21lcklEIikgJT4lDQogIG11dGF0ZShGcmVxdWVuY3kgPSByZXBsYWNlX25hKEZyZXF1ZW5jeSwgMCksIE1vbmV0YXJ5ID0gcmVwbGFjZV9uYShNb25ldGFyeSwgMCkpDQoNCnN1bW1hcnkoY3VzdG9tZXIuYWN0aXZlLlJGTSkNCmBgYA0KDQoNCmBgYHtyfQ0KY3VzdG9tZXIuYWN0aXZlIDwtIGN1c3RvbWVyLmFjdGl2ZS5SRk0gJT4lDQogIGxlZnRfam9pbihjdXN0b21lciwgYnkgPSAnQ3VzdG9tZXJJRCcpICU+JQ0KICBzZWxlY3QoLVgpDQoNCmN1c3RvbWVyLnN0YXRzIDwtIHNlc3Npb25zLmFsbCAlPiUNCiAgZ3JvdXBfYnkoQ3VzdG9tZXJJRCkgJT4lDQogIHNlbGVjdCgtYyhYLCBQbGF5SUQsIERhdGUpKSAlPiUNCiAgc3VtbWFyaXNlX2FsbChmdW5zKHN1bSkpDQoNCmN1c3RvbWVyLmFjdGl2ZSA8LSBjdXN0b21lci5hY3RpdmUgJT4lDQogIGxlZnRfam9pbihjdXN0b21lci5zdGF0cywgYnkgPSAiQ3VzdG9tZXJJRCIpDQoNCnN1bW1hcnkoY3VzdG9tZXIuYWN0aXZlKQ0KYGBgDQoNCg0KDQoNCg0KYGBge3J9DQojIFJlZ2lzdHJhdGlvbiBwZXJpb2QNCmRheXNfaW5fcmVnaXN0cmF0aW9uX3BlcmlvZCA8LSBhcy5udW1lcmljKGFzLkRhdGUobWF4KHNlc3Npb25zLmFsbCREYXRlKSkgLSBhcy5EYXRlKG1pbihhcy5EYXRlKGN1c3RvbWVyJFJlZ2lzdHJhdGlvbmRhdGUpKSkpDQoNCiMgUGVyaW9kIG9mIHRpbWUgb2YgdHJhbnNhY3Rpb25zDQpkYXlzX2luX3BlcmlvZCA8LSBhcy5udW1lcmljKGFzLkRhdGUobWF4KHNlc3Npb25zLmFsbCREYXRlKSkgLSBhcy5EYXRlKG1pbihzZXNzaW9ucy5hbGwkRGF0ZSkpKQ0KDQp0b3RhbF9kYWlseV9yZXZlbnVlcyA8LSBzdW0odHguYWxsJFZhbHVlKSAvIGRheXNfaW5fcGVyaW9kDQp0b3RhbF9kYWlseV9tYXJrZXRpbmdfY29zdCA8LSAwLjE1ICogdG90YWxfZGFpbHlfcmV2ZW51ZXMNCnRvdGFsX21hcmtldGluZ19jb3N0X2luX3JlZ2lzdHJhdGlvbl9wZXJpb2QgPC0gdG90YWxfZGFpbHlfbWFya2V0aW5nX2Nvc3QgKiBkYXlzX2luX3JlZ2lzdHJhdGlvbl9wZXJpb2QNCkFDID0gdG90YWxfbWFya2V0aW5nX2Nvc3RfaW5fcmVnaXN0cmF0aW9uX3BlcmlvZCAvIGNvdW50KGN1c3RvbWVyKQ0KQUMNCmBgYA0KDQoNCmBgYHtyfQ0KQ0xWIDwtIGZ1bmN0aW9uIChyKSB7DQogICMgUGVyaW9kIG9mIHRpbWUgdG8gY29udmVydCByZXZlbnVlIHRvIChhbm51YWwpIHJlY3VycmluZyByZXZlbnVlDQogIGRheXNfaW5fcGVyaW9kIDwtIGFzLm51bWVyaWMoYXMuRGF0ZShtYXgoc2Vzc2lvbnMuYWxsJERhdGUpKSAtIGFzLkRhdGUobWluKHNlc3Npb25zLmFsbCREYXRlKSkpDQogIHJyIDwtIHIgKiAzNjUgLyBkYXlzX2luX3BlcmlvZA0KICANCiAgIyBDdXN0b21lciB2YWx1ZQ0KICBBQyA8LSAwICAgICAgICMgQ3VzdG9tZXIgYWNxdWlzaXRpb24gY29zdHMNCiAgcmMgPC0gMCAgICAgICAjIFJlY3VycmluZyBjb3N0DQogIG0gIDwtIHJyIC0gcmMgIyBDdXN0b21lciByZWN1cnJpbmcgY29udHJpYnV0aW9uIG1hcmdpbg0KICByICA8LSAwLjUgICAgICMgUmV0ZW50aW9uIHByb2JhYmlsaXR5IGZvciB0aGUgY3VzdG9tZXINCiAgdCAgPC0gNSAgICAgICAjIE51bWJlciBvZiB5ZWFycyDigJxvdXTigJ0gdG8gZXN0aW1hdGUNCiAgZCAgPC0gMC4xICAgICAjIERpc2NvdW50IHJhdGUgKENvc3Qgb2YgQ2FwaXRhbCkNCiAgDQogIGNsdiA8LSBBQw0KICBmb3IoaSBpbiAwOnQpIHsNCiAgICBjbHYgPC0gY2x2Kygocl5pKSptLygxK2QpXmkpDQogIH0NCiAgcmV0dXJuKGNsdikNCn0NCmBgYA0KDQoNCmBgYHtyfQ0KY2x2IDwtIGN1c3RvbWVyLmFjdGl2ZSAlPiUgbXV0YXRlKENMViA9IENMVihNb25ldGFyeSkpDQpzdW1tYXJ5KGNsdikNCmBgYA0KDQo=</div>
 
 
 
