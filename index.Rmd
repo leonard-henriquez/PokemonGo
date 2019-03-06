@@ -56,18 +56,42 @@ summary(customer.RFM)
 
 ```{r}
 # Fetch all active customer
-customer.active <- sessions.summer %>% select(CustomerID) %>% distinct(CustomerID)
+customerID.active <- sessions.summer %>% select(CustomerID) %>% distinct(CustomerID)
 
-summary(customer.active)
+summary(customerID.active)
 ```
 
 ```{r}
 # Calculate the RFM value for active customers
-customer.active.RFM <- customer.active %>%
+customer.active.RFM <- customerID.active %>%
   left_join(customer.RFM, by = "CustomerID") %>%
   mutate(Frequency = replace_na(Frequency, 0), Monetary = replace_na(Monetary, 0))
 
 summary(customer.active.RFM)
 ```
 
+
+```{r}
+customer.active = customer.active.RFM %>%
+  left_join(customer, by = 'CustomerID') %>%
+  select(-X)
+
+head(customer.active)
+```
+
+
+```{r}
+# Customer value
+AC <- 0   # Customer acquisition costs
+m  <- 156 # Customer recurring contribution margin
+r  <- 0.5 # Retention probability for the customer
+t  <- 5   # Number of years “out” to estimate
+d  <- 0.1 # Discount rate (Cost of Capital)
+
+clv<-AC
+for(i in 0:t) {
+  clv<-clv+((r^i)*m/(1+d)^i)
+}
+clv
+```
 
