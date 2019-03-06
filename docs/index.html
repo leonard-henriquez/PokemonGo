@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+<meta name="author" content="Leonard Henriquez, Adrien Lequiller &amp; Eddy Ohayon" />
+
+<meta name="date" content="2019-03-06" />
+
+<title>PokemonGo customer analytics</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<script src="site_libs/navigation-1.1/codefolding.js"></script>
+<script src="site_libs/navigation-1.1/sourceembed.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+#rmd-source-code {
+  display: none;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 51px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+
+.section h2 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h3 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h4 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h5 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h6 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+<style type="text/css">
+.code-folding-btn { margin-bottom: 4px; }
+</style>
+<script>
+$(document).ready(function () {
+  window.initializeSourceEmbed("index.Rmd");
+});
+</script>
+
+
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">PokemonGo customer analytics</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div class="fluid-row" id="header">
+
+<div class="btn-group pull-right">
+<button type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
+<ul class="dropdown-menu" style="min-width: 50px;">
+<li><a id="rmd-download-source" href="#">Download Rmd</a></li>
+</ul>
+</div>
+
+
+
+<h1 class="title toc-ignore">PokemonGo customer analytics</h1>
+<h4 class="author"><em><a href="https://github.com/leonard-henriquez/">Leonard Henriquez</a>, <a href="https://github.com/adrienlequiller">Adrien Lequiller</a> &amp; <a href="https://github.com/Eddoha55">Eddy Ohayon</a></em></h4>
+<h4 class="date"><em>2019-03-06</em></h4>
+
+</div>
+
+
+<p>First, let’s start by reading the data</p>
+<pre class="r"><code># Import customers&#39; data
+customer        &lt;- read.csv(&quot;input/customerdata.csv&quot; )
+
+# Import transactions
+tx.fall         &lt;- read.csv(&quot;input/fallfintrx.csv&quot;   )
+tx.summer       &lt;- read.csv(&quot;input/summerfintrx.csv&quot; )
+tx.all &lt;- tx.fall %&gt;% union(tx.summer)
+
+# Import sessions
+sessions.fall   &lt;- read.csv(&quot;input/fallsesstrx.csv&quot;  )
+sessions.summer &lt;- read.csv(&quot;input/summersesstrx.csv&quot;)
+sessions.all &lt;- sessions.fall %&gt;% union(sessions.summer)</code></pre>
+<pre class="r"><code>summary(customer)</code></pre>
+<pre><code>##        X          CustomerID    CustomerType     Registrationdate
+##  Min.   :   1   Min.   :   1   Min.   :1.000   2018-03-07:  32   
+##  1st Qu.:1251   1st Qu.:1251   1st Qu.:1.000   2018-03-23:  32   
+##  Median :2500   Median :2500   Median :2.000   2018-04-27:  32   
+##  Mean   :2500   Mean   :2500   Mean   :2.497   2018-02-01:  31   
+##  3rd Qu.:3750   3rd Qu.:3750   3rd Qu.:4.000   2018-02-24:  30   
+##  Max.   :5000   Max.   :5000   Max.   :4.000   2018-03-25:  30   
+##                                                (Other)   :4813   
+##       Sex              Age          fallbonus       Income     
+##  Min.   :0.0000   Min.   : 6.00   Min.   :0.0   Min.   :1.000  
+##  1st Qu.:0.0000   1st Qu.:18.00   1st Qu.:0.0   1st Qu.:1.000  
+##  Median :0.0000   Median :27.00   Median :0.0   Median :2.000  
+##  Mean   :0.4038   Mean   :27.51   Mean   :0.2   Mean   :2.011  
+##  3rd Qu.:1.0000   3rd Qu.:33.00   3rd Qu.:0.0   3rd Qu.:3.000  
+##  Max.   :1.0000   Max.   :80.00   Max.   :1.0   Max.   :3.000  
+## </code></pre>
+<pre class="r"><code># Added monetary value of each transaction and converted data
+tx.all &lt;- tx.fall %&gt;% mutate(Value = c(2.99, 4.99, 9.99, 25, 99)[ProductID], Date = as.Date(Date))
+
+summary(tx.all)</code></pre>
+<pre><code>##        X            TransID           Date              CustomerID  
+##  Min.   :  1.0   Min.   :  1.0   Min.   :2018-09-02   Min.   :   8  
+##  1st Qu.:215.2   1st Qu.:215.2   1st Qu.:2018-09-15   1st Qu.:1472  
+##  Median :429.5   Median :429.5   Median :2018-09-29   Median :2772  
+##  Mean   :429.5   Mean   :429.5   Mean   :2018-09-30   Mean   :2627  
+##  3rd Qu.:643.8   3rd Qu.:643.8   3rd Qu.:2018-10-15   3rd Qu.:3819  
+##  Max.   :858.0   Max.   :858.0   Max.   :2018-10-31   Max.   :4997  
+##    ProductID         Value       
+##  Min.   :1.000   Min.   : 2.990  
+##  1st Qu.:1.000   1st Qu.: 2.990  
+##  Median :2.000   Median : 4.990  
+##  Mean   :2.075   Mean   : 8.916  
+##  3rd Qu.:3.000   3rd Qu.: 9.990  
+##  Max.   :5.000   Max.   :99.000</code></pre>
+<pre class="r"><code># Calculated RFM based on all transactions (summer and fall)
+# for each customer (who made at least one transaction)
+customer.RFM &lt;- tx.all %&gt;%
+  inner_join(customer, by = &#39;CustomerID&#39;) %&gt;%
+  group_by(CustomerID) %&gt;%
+  summarise(Recency = max(Date), Frequency = n(), Monetary = sum(Value))
+
+summary(customer.RFM)</code></pre>
+<pre><code>##    CustomerID      Recency             Frequency        Monetary     
+##  Min.   :   8   Min.   :2018-09-02   Min.   :1.000   Min.   :  2.99  
+##  1st Qu.:1456   1st Qu.:2018-09-16   1st Qu.:1.000   1st Qu.:  4.99  
+##  Median :2683   Median :2018-10-02   Median :1.000   Median :  7.98  
+##  Mean   :2590   Mean   :2018-10-02   Mean   :1.464   Mean   : 13.05  
+##  3rd Qu.:3774   3rd Qu.:2018-10-19   3rd Qu.:2.000   3rd Qu.: 14.97  
+##  Max.   :4997   Max.   :2018-10-31   Max.   :4.000   Max.   :198.00</code></pre>
+<pre class="r"><code># Fetch all active customer
+customer.active &lt;- sessions.summer %&gt;% select(CustomerID) %&gt;% distinct(CustomerID)
+
+summary(customer.active)</code></pre>
+<pre><code>##    CustomerID  
+##  Min.   :   1  
+##  1st Qu.:1252  
+##  Median :2506  
+##  Mean   :2502  
+##  3rd Qu.:3751  
+##  Max.   :5000</code></pre>
+<pre class="r"><code># Calculate the RFM value for active customers
+customer.active.RFM &lt;- customer.active %&gt;%
+  left_join(customer.RFM, by = &quot;CustomerID&quot;) %&gt;%
+  mutate(Frequency = replace_na(Frequency, 0), Monetary = replace_na(Monetary, 0))
+
+summary(customer.active.RFM)</code></pre>
+<pre><code>##    CustomerID      Recency             Frequency         Monetary      
+##  Min.   :   1   Min.   :2018-09-02   Min.   :0.0000   Min.   :  0.000  
+##  1st Qu.:1252   1st Qu.:2018-09-16   1st Qu.:0.0000   1st Qu.:  0.000  
+##  Median :2506   Median :2018-10-02   Median :0.0000   Median :  0.000  
+##  Mean   :2502   Mean   :2018-10-02   Mean   :0.1819   Mean   :  1.622  
+##  3rd Qu.:3751   3rd Qu.:2018-10-19   3rd Qu.:0.0000   3rd Qu.:  0.000  
+##  Max.   :5000   Max.   :2018-10-31   Max.   :4.0000   Max.   :198.000  
+##                 NA&#39;s   :4131</code></pre>
+
+<div id="rmd-source-code">LS0tDQp0aXRsZTogIlBva2Vtb25HbyBjdXN0b21lciBhbmFseXRpY3MiDQphdXRob3I6ICdbTGVvbmFyZCBIZW5yaXF1ZXpdKGh0dHBzOi8vZ2l0aHViLmNvbS9sZW9uYXJkLWhlbnJpcXVlei8pLCBbQWRyaWVuIExlcXVpbGxlcl0oaHR0cHM6Ly9naXRodWIuY29tL2FkcmllbmxlcXVpbGxlcikgJiBbRWRkeSBPaGF5b25dKGh0dHBzOi8vZ2l0aHViLmNvbS9FZGRvaGE1NSknDQpkYXRlOiAiYHIgU3lzLkRhdGUoKWAiDQpvdXRwdXQ6IHBkZl9kb2N1bWVudA0KYWx3YXlzX2FsbG93X2h0bWw6IHllcw0KLS0tDQoNCmBgYHtyIG1lc3NhZ2U9RkFMU0UsIHdhcm5pbmc9RkFMU0UsIGluY2x1ZGU9RkFMU0V9DQojIE9wdGlvbnMNCmtuaXRyOjpvcHRzX2NodW5rJHNldChjYWNoZSA9IFRSVUUsIHdhcm5pbmc9RkFMU0UpDQoNCiMgTGlicmFyaWVzDQpsaWJyYXJ5KGRwbHlyKQ0KbGlicmFyeSh0aWR5cikNCmBgYA0KDQpGaXJzdCwgbGV0J3Mgc3RhcnQgYnkgcmVhZGluZyB0aGUgZGF0YQ0KYGBge3J9DQojIEltcG9ydCBjdXN0b21lcnMnIGRhdGENCmN1c3RvbWVyICAgICAgICA8LSByZWFkLmNzdigiaW5wdXQvY3VzdG9tZXJkYXRhLmNzdiIgKQ0KDQojIEltcG9ydCB0cmFuc2FjdGlvbnMNCnR4LmZhbGwgICAgICAgICA8LSByZWFkLmNzdigiaW5wdXQvZmFsbGZpbnRyeC5jc3YiICAgKQ0KdHguc3VtbWVyICAgICAgIDwtIHJlYWQuY3N2KCJpbnB1dC9zdW1tZXJmaW50cnguY3N2IiApDQp0eC5hbGwgPC0gdHguZmFsbCAlPiUgdW5pb24odHguc3VtbWVyKQ0KDQojIEltcG9ydCBzZXNzaW9ucw0Kc2Vzc2lvbnMuZmFsbCAgIDwtIHJlYWQuY3N2KCJpbnB1dC9mYWxsc2Vzc3RyeC5jc3YiICApDQpzZXNzaW9ucy5zdW1tZXIgPC0gcmVhZC5jc3YoImlucHV0L3N1bW1lcnNlc3N0cnguY3N2IikNCnNlc3Npb25zLmFsbCA8LSBzZXNzaW9ucy5mYWxsICU+JSB1bmlvbihzZXNzaW9ucy5zdW1tZXIpDQpgYGANCg0KYGBge3J9DQpzdW1tYXJ5KGN1c3RvbWVyKQ0KYGBgDQpgYGB7cn0NCiMgQWRkZWQgbW9uZXRhcnkgdmFsdWUgb2YgZWFjaCB0cmFuc2FjdGlvbiBhbmQgY29udmVydGVkIGRhdGENCnR4LmFsbCA8LSB0eC5mYWxsICU+JSBtdXRhdGUoVmFsdWUgPSBjKDIuOTksIDQuOTksIDkuOTksIDI1LCA5OSlbUHJvZHVjdElEXSwgRGF0ZSA9IGFzLkRhdGUoRGF0ZSkpDQoNCnN1bW1hcnkodHguYWxsKQ0KYGBgDQoNCg0KYGBge3J9DQojIENhbGN1bGF0ZWQgUkZNIGJhc2VkIG9uIGFsbCB0cmFuc2FjdGlvbnMgKHN1bW1lciBhbmQgZmFsbCkNCiMgZm9yIGVhY2ggY3VzdG9tZXIgKHdobyBtYWRlIGF0IGxlYXN0IG9uZSB0cmFuc2FjdGlvbikNCmN1c3RvbWVyLlJGTSA8LSB0eC5hbGwgJT4lDQogIGlubmVyX2pvaW4oY3VzdG9tZXIsIGJ5ID0gJ0N1c3RvbWVySUQnKSAlPiUNCiAgZ3JvdXBfYnkoQ3VzdG9tZXJJRCkgJT4lDQogIHN1bW1hcmlzZShSZWNlbmN5ID0gbWF4KERhdGUpLCBGcmVxdWVuY3kgPSBuKCksIE1vbmV0YXJ5ID0gc3VtKFZhbHVlKSkNCg0Kc3VtbWFyeShjdXN0b21lci5SRk0pDQpgYGANCg0KDQpgYGB7cn0NCiMgRmV0Y2ggYWxsIGFjdGl2ZSBjdXN0b21lcg0KY3VzdG9tZXIuYWN0aXZlIDwtIHNlc3Npb25zLnN1bW1lciAlPiUgc2VsZWN0KEN1c3RvbWVySUQpICU+JSBkaXN0aW5jdChDdXN0b21lcklEKQ0KDQpzdW1tYXJ5KGN1c3RvbWVyLmFjdGl2ZSkNCmBgYA0KDQpgYGB7cn0NCiMgQ2FsY3VsYXRlIHRoZSBSRk0gdmFsdWUgZm9yIGFjdGl2ZSBjdXN0b21lcnMNCmN1c3RvbWVyLmFjdGl2ZS5SRk0gPC0gY3VzdG9tZXIuYWN0aXZlICU+JQ0KICBsZWZ0X2pvaW4oY3VzdG9tZXIuUkZNLCBieSA9ICJDdXN0b21lcklEIikgJT4lDQogIG11dGF0ZShGcmVxdWVuY3kgPSByZXBsYWNlX25hKEZyZXF1ZW5jeSwgMCksIE1vbmV0YXJ5ID0gcmVwbGFjZV9uYShNb25ldGFyeSwgMCkpDQoNCnN1bW1hcnkoY3VzdG9tZXIuYWN0aXZlLlJGTSkNCmBgYA0KDQoNCg==</div>
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+
+
+<title>README.utf8.md</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<script src="site_libs/navigation-1.1/codefolding.js"></script>
+<script src="site_libs/navigation-1.1/sourceembed.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+#rmd-source-code {
+  display: none;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 51px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+
+.section h2 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h3 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h4 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h5 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h6 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+<style type="text/css">
+.code-folding-btn { margin-bottom: 4px; }
+</style>
+<script>
+$(document).ready(function () {
+  window.initializeSourceEmbed("README.md");
+});
+</script>
+
+
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">PokemonGo customer analytics</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div class="fluid-row" id="header">
+
+<div class="btn-group pull-right">
+<button type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
+<ul class="dropdown-menu" style="min-width: 50px;">
+<li><a id="rmd-download-source" href="#">Download Rmd</a></li>
+</ul>
+</div>
+
+
+
+
+</div>
+
+
+<div id="pokemongo-customer-analytics-language" class="section level1">
+<h1>PokemonGo customer analytics <a href="https://img.shields.io/badge/language-R-blue.svg">language</a></h1>
+<blockquote>
+<p>Customer analytics project on PokemonGo</p>
+</blockquote>
+<div id="books-table-of-contents" class="section level2">
+<h2>:books: Table of Contents</h2>
+<ul>
+<li><a href="#package-installation">Installation</a></li>
+<li><a href="#rocket-usage">Usage</a></li>
+<li><a href="#hammer_and_wrench-support">Support</a></li>
+<li><a href="#memo-contributing">Contributing</a></li>
+</ul>
+</div>
+<div id="package-installation" class="section level2">
+<h2>:package: Installation</h2>
+<p>Clone repo</p>
+<pre class="sh"><code>git clone https://github.com/leonard-henriquez/PokemonGo</code></pre>
+</div>
+<div id="rocket-usage" class="section level2">
+<h2>:rocket: Usage</h2>
+<p>:construction: Under construction</p>
+</div>
+<div id="hammer_and_wrench-support" class="section level2">
+<h2>:hammer_and_wrench: Support</h2>
+<p>Please <a href="https://github.com/leonard-henriquez/readme-boilerplate/issues/new">open an issue</a> for support.</p>
+</div>
+<div id="memo-contributing" class="section level2">
+<h2>:memo: Contributing</h2>
+<p>Please contribute using <a href="https://guides.github.com/introduction/flow/">Github Flow</a>. Create a branch, add commits, and <a href="https://github.com/leonard-henriquez/readme-boilerplate/compare/">open a pull request</a>.</p>
+</div>
+</div>
+
+<div id="rmd-source-code">IyBQb2tlbW9uR28gY3VzdG9tZXIgYW5hbHl0aWNzIFtsYW5ndWFnZV0oaHR0cHM6Ly9pbWcuc2hpZWxkcy5pby9iYWRnZS9sYW5ndWFnZS1SLWJsdWUuc3ZnKQ0KDQo+IEN1c3RvbWVyIGFuYWx5dGljcyBwcm9qZWN0IG9uIFBva2Vtb25Hbw0KDQojIyA6Ym9va3M6IFRhYmxlIG9mIENvbnRlbnRzDQoNCi0gW0luc3RhbGxhdGlvbl0oI3BhY2thZ2UtaW5zdGFsbGF0aW9uKQ0KLSBbVXNhZ2VdKCNyb2NrZXQtdXNhZ2UpDQotIFtTdXBwb3J0XSgjaGFtbWVyX2FuZF93cmVuY2gtc3VwcG9ydCkNCi0gW0NvbnRyaWJ1dGluZ10oI21lbW8tY29udHJpYnV0aW5nKQ0KDQojIyA6cGFja2FnZTogSW5zdGFsbGF0aW9uDQoNCkNsb25lIHJlcG8NCg0KYGBgc2gNCmdpdCBjbG9uZSBodHRwczovL2dpdGh1Yi5jb20vbGVvbmFyZC1oZW5yaXF1ZXovUG9rZW1vbkdvDQpgYGANCg0KIyMgOnJvY2tldDogVXNhZ2UNCg0KOmNvbnN0cnVjdGlvbjogVW5kZXIgY29uc3RydWN0aW9uDQoNCiMjIDpoYW1tZXJfYW5kX3dyZW5jaDogU3VwcG9ydA0KDQpQbGVhc2UgW29wZW4gYW4gaXNzdWVdKGh0dHBzOi8vZ2l0aHViLmNvbS9sZW9uYXJkLWhlbnJpcXVlei9yZWFkbWUtYm9pbGVycGxhdGUvaXNzdWVzL25ldykgZm9yIHN1cHBvcnQuDQoNCiMjIDptZW1vOiBDb250cmlidXRpbmcNCg0KUGxlYXNlIGNvbnRyaWJ1dGUgdXNpbmcgW0dpdGh1YiBGbG93XShodHRwczovL2d1aWRlcy5naXRodWIuY29tL2ludHJvZHVjdGlvbi9mbG93LykuIENyZWF0ZSBhIGJyYW5jaCwgYWRkIGNvbW1pdHMsIGFuZCBbb3BlbiBhIHB1bGwgcmVxdWVzdF0oaHR0cHM6Ly9naXRodWIuY29tL2xlb25hcmQtaGVucmlxdWV6L3JlYWRtZS1ib2lsZXJwbGF0ZS9jb21wYXJlLykuDQo=</div>
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

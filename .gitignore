@@ -2,7 +2,6 @@
 .Rhistory
 .RData
 .Ruserdata
-*.html
 *.pdf
 .DS_Store
 index_cache/
