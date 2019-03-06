@@ -12,4 +12,62 @@ knitr::opts_chunk$set(cache = TRUE, warning=FALSE)
 
 # Libraries
 library(dplyr)
+library(tidyr)
 ```
+
+First, let's start by reading the data
+```{r}
+# Import customers' data
+customer        <- read.csv("input/customerdata.csv" )
+
+# Import transactions
+tx.fall         <- read.csv("input/fallfintrx.csv"   )
+tx.summer       <- read.csv("input/summerfintrx.csv" )
+tx.all <- tx.fall %>% union(tx.summer)
+
+# Import sessions
+sessions.fall   <- read.csv("input/fallsesstrx.csv"  )
+sessions.summer <- read.csv("input/summersesstrx.csv")
+sessions.all <- sessions.fall %>% union(sessions.summer)
+```
+
+```{r}
+summary(customer)
+```
+```{r}
+# Added monetary value of each transaction and converted data
+tx.all <- tx.fall %>% mutate(Value = c(2.99, 4.99, 9.99, 25, 99)[ProductID], Date = as.Date(Date))
+
+summary(tx.all)
+```
+
+
+```{r}
+# Calculated RFM based on all transactions (summer and fall)
+# for each customer (who made at least one transaction)
+customer.RFM <- tx.all %>%
+  inner_join(customer, by = 'CustomerID') %>%
+  group_by(CustomerID) %>%
+  summarise(Recency = max(Date), Frequency = n(), Monetary = sum(Value))
+
+summary(customer.RFM)
+```
+
+
+```{r}
+# Fetch all active customer
+customer.active <- sessions.summer %>% select(CustomerID) %>% distinct(CustomerID)
+
+summary(customer.active)
+```
+
+```{r}
+# Calculate the RFM value for active customers
+customer.active.RFM <- customer.active %>%
+  left_join(customer.RFM, by = "CustomerID") %>%
+  mutate(Frequency = replace_na(Frequency, 0), Monetary = replace_na(Monetary, 0))
+
+summary(customer.active.RFM)
+```
+
+

@@ -6,3 +6,5 @@
 *.pdf
 .DS_Store
 docs/
+index_cache/
+index_files/
