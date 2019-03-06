@@ -1,5 +1,5 @@
 ---
-title: "R Template"
+title: "PokemonGo customer analytics"
 author: '[Leonard Henriquez](https://github.com/leonard-henriquez/), [Adrien Lequiller](https://github.com/adrienlequiller) & [Eddy Ohayon](https://github.com/Eddoha55)'
 date: "`r Sys.Date()`"
 output: pdf_document

@@ -1,7 +1,7 @@
-name: "R Template"
+name: "PokemonGo customer analytics"
 output_dir: "docs"
 navbar:
-  title: "R Template"
+  title: "PokemonGo customer analytics"
 output:
   html_document:
     theme: cosmo
