@@ -13,6 +13,7 @@ knitr::opts_chunk$set(cache = TRUE, warning=FALSE)
 # Libraries
 library(dplyr)
 library(tidyr)
+library(ggplot2)
 ```
 
 First, let's start by reading the data
@@ -111,15 +112,15 @@ CLV <- function (r) {
   # Period of time to convert revenue to (annual) recurring revenue
   days_in_period <- as.numeric(as.Date(max(sessions.all$Date)) - as.Date(min(sessions.all$Date)))
   rr <- r * 365 / days_in_period
-  
+
   # Customer value
   AC <- 0       # Customer acquisition costs
   rc <- 0       # Recurring cost
   m  <- rr - rc # Customer recurring contribution margin
   r  <- 0.5     # Retention probability for the customer
-  t  <- 5       # Number of years “out” to estimate
+  t  <- 5       # Number of years 'out' to estimate
   d  <- 0.1     # Discount rate (Cost of Capital)
-  
+
   clv <- AC
   for(i in 0:t) {
     clv <- clv+((r^i)*m/(1+d)^i)
@@ -134,3 +135,7 @@ clv <- customer.active %>% mutate(CLV = CLV(Monetary))
 summary(clv)
 ```
 
+```{r}
+ggplot(customer.active)+aes(x=CustomerType,fill=as.factor(Sex))+geom_bar()
+ggplot(customer.active)+aes(x=Sex,fill=as.factor(CustomerType))+geom_bar()
+```
