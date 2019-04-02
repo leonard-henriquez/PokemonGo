@@ -4,5 +4,5 @@
 .Ruserdata
 *.pdf
 .DS_Store
-index_cache/
-index_files/
+/index_cache/
+/index_files/
