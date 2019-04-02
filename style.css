@@ -1,0 +1,12 @@
+h1, .h1, h2, .h2, h3, .h3, h4, .h4 {
+    margin-top: 30px !important;
+    padding-top: 0px !important;
+}
+
+pre {
+    margin-top: 20px !important;    
+}
+
+p {
+    padding-top: 15px !important;
+}
