@@ -51,6 +51,7 @@ customer.RFM <- tx.all %>%
   group_by(CustomerID) %>%
   summarise(Recency = max(Date), Frequency = n(), Monetary = sum(Value)) %>%
   inner_join(customer, by = 'CustomerID')
+
 summary(customer.RFM)
 ```
 
