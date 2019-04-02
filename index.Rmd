@@ -144,9 +144,14 @@ customer.stats <- sessions.all %>%
   select(-c(X, PlayID, Date)) %>%
   summarise_all(funs(sum))
 
-customer.active <- customer.active.RFM %>%
+customer <- customer.RFM %>%
   left_join(customer.stats, by = "CustomerID") %>%
   inner_join(customer, by = 'CustomerID') %>%
+  select(-X)
+
+customer.active <- customer.active.RFM %>%
+  left_join(customer, by = 'CustomerID') %>%
+  left_join(customer.stats, by = "CustomerID") %>%
   select(-X)
 
 summary(customer.active)
@@ -281,10 +286,10 @@ So, in the end we chose to build a linear model to estimate how much a customer 
 First, let's build tables containing information of past purchases, by customer and by month:
 
 ```{r}
-all.customerID <- data_frame(CustomerID=customer$CustomerID)
+customerID.all <- data_frame(CustomerID=customer$CustomerID)
 tx.all$Month = format(tx.all$Date, "%m")
 columns <- c('05', '06', '07', '08', '09', '10')
-monthly.tx.all <- all.customerID %>%
+monthly.tx.all <- customerID.all %>%
   left_join(tx.all, by = "CustomerID") %>%
   spread(Month, Value) %>%
   select(-c(X:ProductID)) %>%
@@ -388,8 +393,8 @@ CLV <- function (CLV.const, model, id) {
 And calculate le clv for every customer:
 
 ```{r}
-clv <- customer.active %>% mutate(CLV = CLV(CLV.const, model, CustomerID))
-summary(clv)
+customer.active <- customer.active %>% mutate(CLV = CLV(CLV.const, model, CustomerID))
+summary(customer.active)
 ```
 
 ### Profiling
@@ -412,19 +417,19 @@ Let's firt go through very basic descriptive analysis to get a few insights abou
 #Very descriptive: look at the number of customers for descriptive purposes
 
 #per type
-customer_type_number <- customer %>% group_by(CustomerType) %>% summarise(Number_per_Type = n())
+customer_type_number <- customer.active %>% group_by(CustomerType) %>% summarise(Number_per_Type = n())
 ggplot(customer_type_number) + aes(x=CustomerType,y=Number_per_Type) + geom_bar(stat="identity")
 
 #per sex
-customer_sex <- customer %>% group_by(Sex) %>% summarise(Number_per_Sex=n())
+customer_sex <- customer.active %>% group_by(Sex) %>% summarise(Number_per_Sex=n())
 ggplot(customer_sex) + aes(x=Sex,y=Number_per_Sex) + geom_bar(stat="identity")
 
 #per Age
-customer_age <- customer %>% group_by(Age) %>% summarise(Number_per_Age = n())
+customer_age <- customer.active %>% group_by(Age) %>% summarise(Number_per_Age = n())
 ggplot(customer_age) + aes(x=Age,y=Number_per_Age) + geom_line()
 
 #per income
-customer_income <- customer %>% group_by(Income) %>% summarise(Number_per_Income = n())
+customer_income <- customer.active %>% group_by(Income) %>% summarise(Number_per_Income = n())
 ggplot(customer_income) + aes(x=Income,y=Number_per_Income) + geom_bar(stat="identity")
 ```
 
@@ -434,11 +439,11 @@ Regarding other variables there is no elements that could be helpful for the res
 Now, let's have a look to the frequency and monetary variables considering the fallbonus:
 
 ```{r}
-ggplot(customer.RFM) + aes(x=Frequency,y=Monetary,col=CustomerType)+geom_point()+theme_classic()
-ggplot(customer.RFM) + aes(x=Frequency,y=Monetary,col=Sex)+geom_point()+theme_classic()
-ggplot(customer.RFM) + aes(x=Frequency,y=Monetary,col=Income)+geom_point()+theme_classic()
-ggplot(customer.RFM) + aes(x=Frequency,y=Monetary,col=fallbonus)+geom_point()+theme_classic()
-ggplot(customer.RFM) + aes(x=Frequency,y=Monetary,col=Age_category)+geom_point()+theme_classic()
+ggplot(customer.active) + aes(x=Frequency,y=Monetary,col=CustomerType)+geom_point()+theme_classic()
+ggplot(customer.active) + aes(x=Frequency,y=Monetary,col=Sex)+geom_point()+theme_classic()
+ggplot(customer.active) + aes(x=Frequency,y=Monetary,col=Income)+geom_point()+theme_classic()
+ggplot(customer.active) + aes(x=Frequency,y=Monetary,col=fallbonus)+geom_point()+theme_classic()
+ggplot(customer.active) + aes(x=Frequency,y=Monetary,col=Age_category)+geom_point()+theme_classic()
 ```
 Basically, there seems to be clear mixing between customers and it's difficult to see whether there is are trends regarding each variable considered.
 
@@ -452,7 +457,7 @@ We will first have a look at the volume of transactions regarding the period (re
 
 ```{r}
 # creating recency and frequency groups on the 31-10-2018
-customer.LCG <- customer.RFM %>%
+customer.LCG <- customer.active %>%
   mutate(segm.freq=ifelse(between(Frequency, 1, 2), '1-2',
                           ifelse(between(Frequency, 3, 5), '3-5', '>5'))) %>% mutate(segm.rec=ifelse(between(Recency, as.Date("2018-09-01"),as.Date("2018-10-31")), 'Fall', 'Summer'))
 
