@@ -112,9 +112,7 @@ We defined:
 # for each customer (who made at least one transaction)
 customer.RFM <- tx.all %>%
   group_by(CustomerID) %>%
-  summarise(Recency = as.numeric(all.end-max(Date)), Frequency = n(), Monetary = sum(Value)) %>%
-  inner_join(customer, by = 'CustomerID') %>%
-  select(-X)
+  summarise(Recency = as.numeric(all.end-max(Date)), Frequency = n(), Monetary = sum(Value))
 
 summary(customer.RFM)
 ```
@@ -147,7 +145,9 @@ customer.stats <- sessions.all %>%
   summarise_all(funs(sum))
 
 customer.active <- customer.active.RFM %>%
-  left_join(customer.stats, by = "CustomerID")
+  left_join(customer.stats, by = "CustomerID") %>%
+  inner_join(customer, by = 'CustomerID') %>%
+  select(-X)
 
 summary(customer.active)
 ```
