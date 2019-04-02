@@ -586,9 +586,11 @@ ggplot(lcg.5, aes(x=Age_category, y=quantity, fill=quantity))+
 
 # Assigment III, Churn analysis
 
-Let's take the definition provided in the assignment for churn i.e. customer who did not perform any transaction in fall 2018.
+In this assignent we want to understand more what are the variables that have an impact on churn to be able to predict churn better.
 
-> Remider: we working on the "active" basetable (customer that played at least once during the summer), regardless wether they made transactions in summer or not
+First we need to be clear about churn definition. The definition provided in the assignment for churn is a customer who did not perform any transaction in fall 2018.
+
+> Remider: we working on the "active" basetable composer of all customer that played at least once during the summer, regardless wether they made transactions in summer or not
 
 ```{r}
 customerID.active.fall <- sessions.fall %>%
@@ -597,7 +599,53 @@ customerID.active.fall <- sessions.fall %>%
   select(CustomerID)
 
 customer.active <- customer.active %>%
-  mutate(churned = ! CustomerID %in% customerID.active.fall$CustomerID)
+  mutate(Churned = ! CustomerID %in% customerID.active.fall$CustomerID)
 ```
 
+Now let's build different models and compare them to find the best one. We will keep the most parsimonious one with an AIC comparable to the full model.
 
+First let's build the full model to have a point of reference of what's a good AIC:
+
+```{r}
+model.churn.full <- glm(Churned ~ .,
+                   family = binomial(link='logit'),
+                   data = customer.active)
+
+summary(model.churn.full)
+```
+
+So we want a model with an AIC as close as possible from 1500.
+
+First, let's build our first model only based on the fall bonus:
+
+```{r}
+model.churn.1 <- glm(Churned ~ fallbonus -1,
+                     family = binomial(link='logit'),
+                     data = customer.active)
+summary(model.churn.1)
+```
+
+The fall bonus has indeed a significant impact on churn but it not be the only variable to consider to predict churn because the AIC is quite far from the full model's AIC.
+
+Let's add the Recency criterium as one can imagine that a player who just bought an item has lower chances to churn:
+
+```{r}
+model.churn.2 <- glm(Churned ~ fallbonus + Recency -1,
+                     family = binomial(link='logit'),
+                     data = customer.active)
+summary(model.churn.2)
+```
+
+Now we might want to add the Experience variable as a user that already played a lot is less likely to stop due to sunk cost fallacy:
+
+```{r}
+model.churn.3 <- glm(Churned ~ fallbonus + Recency + Experience -1,
+                   family = binomial(link='logit'),
+                   data = customer.active)
+
+summary(model.churn.3)
+```
+
+This last model seems quite good as we have almost the same AIC criterion as the full model, which means that this model contains almost the same amount of information as the best one in the family of the logistic regression models.
+
+Thus, we may conclude that the fal bonus, the recency of buying and the experience of the player are the three variables that explains most of the predictable churn.
