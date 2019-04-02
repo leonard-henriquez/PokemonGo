@@ -6,3 +6,4 @@ output:
   html_document:
     theme: cosmo
     code_download: true
+    css: style.css
