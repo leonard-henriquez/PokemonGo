@@ -583,10 +583,18 @@ ggplot(lcg.5, aes(x=Age_category, y=quantity, fill=quantity))+
 
 # Assigment III, Churn analysis
 
-Let's take the definition provided in the assignment for churn i.e. customer who did not perform any transaction in fall 2018
+Let's take the definition provided in the assignment for churn i.e. customer who did not perform any transaction in fall 2018.
+
+> Remider: we working on the "active" basetable (customer that played at least once during the summer), regardless wether they made transactions in summer or not
 
 ```{r}
-active.fall <- sessions.fall %>% group_by(CustomerID) %>% distinct(CustomerID) %>% select(CustomerID)
+customerID.active.fall <- sessions.fall %>%
+  group_by(CustomerID) %>%
+  distinct(CustomerID) %>%
+  select(CustomerID)
 
+customer.active <- customer.active %>%
+  mutate(churned = ! CustomerID %in% customerID.active.fall$CustomerID)
 ```
+
 
