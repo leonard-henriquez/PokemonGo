@@ -27,9 +27,6 @@ customer$Sex <- as.factor(customer$Sex)
 customer$Income <- as.factor(customer$Income)
 
 #Let's create categories of Age (that could be relevant for the rest) : 
-
-# As we saw in the preliminitary work, there is huge difference for age, and we can categorise them 
-#as 7-23, 24-35, 36-50 and above 51
 customer <- customer %>%
   mutate(Age_category=ifelse(between(Age, 6, 17), '6-17',
                     ifelse(between(Age, 18, 23), '18-23',
@@ -51,6 +48,7 @@ sessions.all <- sessions.fall %>% union(sessions.summer)
 ```{r}
 summary(customer)
 ```
+
 ```{r}
 # Added monetary value of each transaction and converted data
 tx.all <- tx.all %>% mutate(Value = c(2.99, 4.99, 9.99, 25, 99)[ProductID], Date = as.Date(Date))
@@ -237,7 +235,7 @@ ggplot(lcg.1, aes(x=client, y=quantity, fill=quantity))+
 ```
 
 ```{r}
-#second glance in terms of value (total revenue & verage revenue) of transactions for each sub-category
+#second glance in terms of value (total revenue & average revenue) of transactions for each sub-category
 
 lcg.2 <- customer.LCG %>% 
   group_by(segm.rec,segm.freq) %>% 
