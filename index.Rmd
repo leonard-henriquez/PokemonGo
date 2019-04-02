@@ -19,7 +19,7 @@ library(caret)
 library(xgboost)
 ```
 
-# Assignment I
+# Assignment I, Basetable
 
 ### Data importation and cleaning
 
@@ -167,7 +167,7 @@ In order to calculate it we have 5 parameters to estimate:
 * $m$: Customer recurring contribution margin (which is equal to recurring revenues less recurring costs)
 
 Now let's make (reasonable) assumptions on those parameters.
-First, we decided to estimate all parameters excepted $m$ by values common to all customers. For $d$ or $T$, we have no reason to consider a different cost of capital or number of year out for a customer or another. For $AC$ we have no information concerning marketing operations that may have impacted it excepted the fall bonus, but we believe that it had little cost, little opportunity cost and had mostly an impact on $r$. On the opposite, we decided to estimate $m$ at a customer level based on past purchasing behaviour. For the purpose of this exercise we decided not to do the same technique for $r$ to keep a relatively simple model for CLV.
+First, we decided to estimate all parameters excepted $m$ by values common to all customers. For $d$ or $T$, we have no reason to consider a different cost of capital or number of year out for a customer or another. For $AC$ we have no information concerning marketing operations that may have impacted it excepted the fall bonus, but we believe that it had little cost, little opportunity cost and had mostly an impact on $r$. On the opposite, we decided to estimate $m$ at a customer level based on past purchasing behaviour. For the purpose of this assignment we decided not to do the same technique for $r$ since we'll do it in assigment III.
 
 **Discount Rate**
 
@@ -204,7 +204,7 @@ sprintf("Acquisition Cost is estimated to: $%.2f", CLV.AC)
 
 **Retention rate**
 
-First we'll need to define when we consider that a customer has churned.
+First we'll need to define when we consider that a customer has churned. In this assignment we decided to define churning based on activity (number of sessions played) and not on financial transactions. You may check assigment 3 if you are interested in a definition of churning based on transactions.
 
 To do that we might want to look at an histogram of the average time (in days) between two sessions. Let's do that:
 
@@ -399,14 +399,14 @@ ggplot(customer.active)+aes(x=CustomerType,fill=as.factor(Sex))+geom_bar()
 ggplot(customer.active)+aes(x=Sex,fill=as.factor(CustomerType))+geom_bar()
 ```
 
-# Assignment 2, Lifecycle grids:
+# Assignment II, Lifecycle grids:
 
-In life cycle grids, we are focusing on the R & F of RFM. In other words, in frequent and recent purchases because frequency affects client???s lifetime value and recency affects retention.
+In life cycle grids, we are focusing on the R & F of RFM. In other words, in frequent and recent purchases because frequency affects client's lifetime value and recency affects retention.
 The purpose therefore is to provide a target offer to specific segments or customers.
 
 ### Introduction
 
-Let's firt go thrgouh very basic descriptive analysis to get a few insights about the data: Player Profile, Age, Fallbonus or not and Income.
+Let's firt go through very basic descriptive analysis to get a few insights about the data: Player Profile, Age, Fallbonus or not and Income.
 
 ```{r}
 #Very descriptive: look at the number of customers for descriptive purposes
@@ -575,3 +575,13 @@ ggplot(lcg.5, aes(x=Age_category, y=quantity, fill=quantity))+
   facet_grid(segm.freq ~ segm.rec)+
   ggtitle("LifeCycle Grids: Monetary Value (Total & Average) per Age")
 ```
+
+# Assigment III, Churn analysis
+
+Let's take the definition provided in the assignment for churn i.e. customer who did not perform any transaction in fall 2018
+
+```{r}
+active.fall <- sessions.fall %>% group_by(CustomerID) %>% distinct(CustomerID) %>% select(CustomerID)
+
+```
+
