@@ -126,34 +126,37 @@ customerID.active <- sessions.summer %>%
   distinct(CustomerID)
 ```
 
-Now let's combine those last two tables to have a new table with the RFM value for all active customers (including those who never bought any item):
-```{r}
-# Calculate the RFM value for active customers
-customer.active.RFM <- customerID.active %>%
-  left_join(customer.RFM, by = "CustomerID") %>%
-  # We need to replace we 0 the missing values corresponding to customer who never bought any item
-  mutate(Frequency = replace_na(Frequency, 0), Monetary = replace_na(Monetary, 0))
+Now we have enough to create a RFM table of active customers but we might want other informations on sessions played. So, let's create a table that summarise the information of the sessions played by customers:
 
-summary(customer.active.RFM)
-```
-
-Currently on this table we only have RFM and demographic data, we might also want sessions data, so let's add it:
 ```{r}
 customer.stats <- sessions.all %>%
   group_by(CustomerID) %>%
   select(-c(X, PlayID, Date)) %>%
   summarise_all(funs(sum))
 
-customer <- customer.RFM %>%
-  left_join(customer.stats, by = "CustomerID") %>%
-  inner_join(customer, by = 'CustomerID') %>%
-  select(-X)
+summary(customer.stats)
+```
 
-customer.active <- customer.active.RFM %>%
-  left_join(customer, by = 'CustomerID') %>%
-  left_join(customer.stats, by = "CustomerID") %>%
-  select(-X)
+Finally, we just need to combine the tables built previously to get our basetable:
+```{r}
+# Add all informations to the table with all customers
+recency.max = max(customer.RFM$Recency) + 1
 
+customer <- customer %>%
+  left_join(customer.stats, by = "CustomerID") %>%
+  left_join(customer.RFM, by = 'CustomerID') %>%
+  select(-X) %>%
+  # We need to replace we 0 the missing values corresponding to customer who never bought any item
+  mutate(
+    Recency = replace_na(Recency, max(recency.max)),
+    Frequency = replace_na(Frequency, 0),
+    Monetary = replace_na(Monetary, 0)
+  )
+
+# Filter only active customers
+customer.active <- customer %>% filter(CustomerID %in% customerID.active$CustomerID)
+
+# final basetable
 summary(customer.active)
 ```
 
@@ -334,14 +337,14 @@ test.y  <- test$`10`
 #     with intercept, a customer who as never bought as a CLV of 2.5
 #     without intercept, a customer who as never bought as a CLV of -5.5
 # The answer
-model <- lm(`10`~. - CustomerID, data=train)
+model.revenue <- lm(`10`~. - CustomerID, data=train)
 
 # check the model
-summary(model)
+summary(model.revenue)
 
 # check the performance of the model
-train.pred <- predict(model, train)
-test.pred  <- predict(model, test)
+train.pred <- predict(model.revenue, train)
+test.pred  <- predict(model.revenue, test)
 sprintf("Average absolute error by customer (on training set): $%.2f", mean(abs(train.y-train.pred)))
 sprintf("Average absolute error by customer (on testing set): $%.2f", mean(abs(test.y-test.pred)))
 ```
@@ -393,7 +396,7 @@ CLV <- function (CLV.const, model, id) {
 And calculate le clv for every customer:
 
 ```{r}
-customer.active <- customer.active %>% mutate(CLV = CLV(CLV.const, model, CustomerID))
+customer.active <- customer.active %>% mutate(CLV = CLV(CLV.const, model.revenue, CustomerID))
 summary(customer.active)
 ```
 
