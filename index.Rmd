@@ -22,6 +22,20 @@ First, let's start by reading the data
 customer        <- read.csv("input/customerdata.csv" )
 customer$Registrationdate <- as.Date(customer$Registrationdate)
 customer$fallbonus <- as.factor(customer$fallbonus)
+customer$CustomerType <- as.factor(customer$CustomerType)
+customer$Sex <- as.factor(customer$Sex)
+customer$Income <- as.factor(customer$Income)
+
+#Let's create categories of Age (that could be relevant for the rest) : 
+
+# As we saw in the preliminitary work, there is huge difference for age, and we can categorise them 
+#as 7-23, 24-35, 36-50 and above 51
+customer <- customer %>%
+  mutate(Age_category=ifelse(between(Age, 6, 17), '6-17',
+                    ifelse(between(Age, 18, 23), '18-23',
+                          ifelse(between(Age, 24, 35), '24-35',
+                                 ifelse(between(Age, 36, 50), '36-50', '>51')))))
+customer$Age_category <- factor(customer$Age_category, levels=c('6-17', '18-23', '24-35', '36-50', '>51'))
 
 # Import transactions
 tx.fall         <- read.csv("input/fallfintrx.csv"   )
@@ -88,9 +102,6 @@ customer.active <- customer.active %>%
 
 summary(customer.active)
 ```
-
-
-
 
 
 ```{r}
@@ -175,6 +186,17 @@ ggplot(customer_income) + aes(x=Income,y=Number_per_Income) + geom_bar(stat="ide
 What we can deduce from those first descriptive anaylysis is that only variable Age is determinant in term of number of players. In other words, there is a massive number of players between 23 and 35 years old, a great number before 20 and very little players after 40. 
 Regarding other variables there is no elements that could be helpful for the rest. 
 
+Now, let's have a look to the frequency and monetary variables considering the fallbonus:
+
+```{r}
+ggplot(customer.RFM) + aes(x=Frequency,y=Monetary,col=CustomerType)+geom_point()+theme_classic()
+ggplot(customer.RFM) + aes(x=Frequency,y=Monetary,col=Sex)+geom_point()+theme_classic()
+ggplot(customer.RFM) + aes(x=Frequency,y=Monetary,col=Income)+geom_point()+theme_classic()
+ggplot(customer.RFM) + aes(x=Frequency,y=Monetary,col=fallbonus)+geom_point()+theme_classic()
+ggplot(customer.RFM) + aes(x=Frequency,y=Monetary,col=Age_category)+geom_point()+theme_classic()
+```
+Basically, there seems to be clear mixing between customers and it's difficult to see whether there is are trends regarding each variable considered. 
+
 However, despite the fact that the number of players can be different regarding some of the variables we previously took in account, we are interested here in the number of transactions and the monetary value of transactions. This is a complete different approach. 
 
 2. Life Cycle grids
@@ -198,6 +220,7 @@ summary(customer.LCG)
 
 ```{r}
 # first glance in terms of volume (count) of transactions for each sub-category
+
 lcg.1 <- customer.LCG %>%
   group_by(segm.rec, segm.freq) %>%
   summarise(quantity=n()) %>%
@@ -210,11 +233,12 @@ ggplot(lcg.1, aes(x=client, y=quantity, fill=quantity))+
   geom_bar(stat='identity', alpha=0.6) +
   geom_text(aes(y=max(quantity)/2, label=quantity), size=4) +
   facet_grid(segm.freq ~ segm.rec)+
-  ggtitle("LifeCycle Grids: Preview Number of transactions completed")
+  ggtitle("LifeCycle Grids: Preview Number of transactions")
 ```
 
 ```{r}
 #second glance in terms of value (total revenue & verage revenue) of transactions for each sub-category
+
 lcg.2 <- customer.LCG %>% 
   group_by(segm.rec,segm.freq) %>% 
   summarise(quantity=round(sum(Monetary)),value_ratio=round(mean(Monetary))) %>% 
@@ -228,9 +252,8 @@ ggplot(lcg.2, aes(x=client, y=quantity, fill=quantity))+
   geom_text(aes(y=max(quantity)/2, label=value_ratio), size=3) +
   geom_text(aes(y=max(quantity)/3, label=quantity), size=4) +
   facet_grid(segm.freq ~ segm.rec)+
-  ggtitle("LifeCycle Grids: Preview of Value of transactions")
+  ggtitle("LifeCycle Grids: Preview of Value of transactions (Total & Average)")
 ```
-
 
 Now we will only deal with the monetary value of transactions, as it is the Niantic purpose, but with a focus per sub-category: Player Profile, Fallbonus, Income and Age.   
 
@@ -249,7 +272,7 @@ ggplot(lcg.3, aes(x=CustomerType, y=quantity, fill=quantity))+
   geom_text(aes(y=max(quantity)/2, label=value_ratio), size=3) +
   geom_text(aes(y=max(quantity)/3, label=quantity), size=4) +
   facet_grid(segm.freq ~ segm.rec)+
-  ggtitle("LifeCycle Grids: Preview of Monetary Value per CustomerType")
+  ggtitle("LifeCycle Grids: Monetary Value (Total & Average) per CustomerType")
 
 ```
 
@@ -268,7 +291,7 @@ ggplot(lcg.4, aes(x=fallbonus, y=quantity, fill=quantity))+
   geom_text(aes(y=max(quantity)/2, label=value_ratio), size=3) +
   geom_text(aes(y=max(quantity)/3, label=quantity), size=4) +
   facet_grid(segm.freq ~ segm.rec)+
-  ggtitle("LifeCycle Grids: Preview of Monetary Value per FallBonus")
+  ggtitle("LifeCycle Grids: Monetary Value (Total & Average) per FallBonus")
 ```
 
 ```{r}
@@ -286,38 +309,27 @@ ggplot(lcg.4, aes(x=Income, y=quantity, fill=quantity))+
   geom_text(aes(y=max(quantity)/2, label=value_ratio), size=3) +
   geom_text(aes(y=max(quantity)/3, label=quantity), size=4) +
   facet_grid(segm.freq ~ segm.rec)+
-  ggtitle("LifeCycle Grids: Preview of Monetary Value per FallBonus")
+  ggtitle("LifeCycle Grids: Monetary Value (Total & Average) per FallBonus")
 ```
 
-
-Let's create more categories of Age regarding the first graph we found : 
-```{r}
-# As we saw in the preliminitary work, there is huge difference for age, and we can categorise them 
-#as 7-23, 24-35, 36-50 and above 51
-customer.LCG <- customer.LCG %>%
-  mutate(Age=ifelse(between(Age, 6, 17), '6-17',
-                    ifelse(between(Age, 18, 23), '18-23',
-                          ifelse(between(Age, 24, 35), '24-35',
-                                 ifelse(between(Age, 36, 50), '36-50', '>51')))))
-customer.LCG$Age <- factor(customer.LCG$Age, levels=c('6-17', '18-23', '24-35', '36-50', '>51'))
-customer.LCG
-```
 
 ```{r}
 #Focus on Age
 
-lcg.6 <- customer.LCG %>%
-  group_by(segm.rec, segm.freq, Age) %>%
+lcg.5 <- customer.LCG %>%
+  group_by(segm.rec, segm.freq, Age_category) %>%
   summarise(quantity=round(sum(Monetary)),value_ratio=round(mean(Monetary))) %>%
   ungroup()
 
-ggplot(lcg.6, aes(x=Age, y=quantity, fill=quantity))+
+ggplot(lcg.5, aes(x=Age_category, y=quantity, fill=quantity))+
   theme_bw() +
   theme(panel.grid = element_blank())+
   geom_bar(stat='identity', alpha=0.6) +
   geom_text(aes(y=max(quantity)/2, label=value_ratio), size=3) +
   geom_text(aes(y=max(quantity)/3, label=quantity), size=4) +
   facet_grid(segm.freq ~ segm.rec)+
-  ggtitle("LifeCycle Grids: Preview of Monetary Value per Age")
+  ggtitle("LifeCycle Grids: Monetary Value (Total & Average) per Age")
 ```
+
+
 
