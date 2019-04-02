@@ -2,136 +2,382 @@
 title: "PokemonGo customer analytics"
 author: '[Leonard Henriquez](https://github.com/leonard-henriquez/), [Adrien Lequiller](https://github.com/adrienlequiller) & [Eddy Ohayon](https://github.com/Eddoha55)'
 date: "`r Sys.Date()`"
-output: pdf_document
+output: html_document
 always_allow_html: yes
 ---
 
 ```{r message=FALSE, warning=FALSE, include=FALSE}
 # Options
 knitr::opts_chunk$set(cache = TRUE, warning=FALSE)
+options(digits=4)
 
 # Libraries
 library(dplyr)
 library(tidyr)
 library(ggplot2)
+library(caret)
+library(xgboost)
 ```
 
-First, let's start by reading the data
-```{r}
-# Import customers' data
-customer        <- read.csv("input/customerdata.csv" )
-customer$Registrationdate <- as.Date(customer$Registrationdate)
-customer$fallbonus <- as.factor(customer$fallbonus)
-customer$CustomerType <- as.factor(customer$CustomerType)
-customer$Sex <- as.factor(customer$Sex)
-customer$Income <- as.factor(customer$Income)
+# Assignment I
 
-#Let's create categories of Age (that could be relevant for the rest) : 
+### Data importation and cleaning
+
+1) First, let's start by reading the customer' data:
+```{r}
+# Import customers data
+customer <- read.csv("input/customerdata.csv" )
+
+# Clean data
+customer$Registrationdate <- as.Date(customer$Registrationdate)
+customer$fallbonus        <- as.factor(customer$fallbonus)
+customer$CustomerType     <- as.factor(customer$CustomerType)
+customer$Sex              <- as.factor(customer$Sex)
+customer$Income           <- as.factor(customer$Income)
+
+#Let's create categories of Age (that could be relevant for the rest) :
 customer <- customer %>%
-  mutate(Age_category=ifelse(between(Age, 6, 17), '6-17',
-                    ifelse(between(Age, 18, 23), '18-23',
-                          ifelse(between(Age, 24, 35), '24-35',
-                                 ifelse(between(Age, 36, 50), '36-50', '>51')))))
+  mutate(Age_category=
+    ifelse(between(Age, 6, 17), '6-17',
+    ifelse(between(Age, 18, 23), '18-23',
+    ifelse(between(Age, 24, 35), '24-35',
+    ifelse(between(Age, 36, 50), '36-50', '>51'
+  )))))
 customer$Age_category <- factor(customer$Age_category, levels=c('6-17', '18-23', '24-35', '36-50', '>51'))
 
-# Import transactions
-tx.fall         <- read.csv("input/fallfintrx.csv"   )
-tx.summer       <- read.csv("input/summerfintrx.csv" )
-tx.all <- tx.fall %>% union(tx.summer)
-
-# Import sessions
-sessions.fall   <- read.csv("input/fallsesstrx.csv"  )
-sessions.summer <- read.csv("input/summersesstrx.csv")
-sessions.all <- sessions.fall %>% union(sessions.summer)
-```
-
-```{r}
+# And let's check what we have
 summary(customer)
 ```
 
+
+2) Now let's check the transactions:
 ```{r}
-# Added monetary value of each transaction and converted data
-tx.all <- tx.all %>% mutate(Value = c(2.99, 4.99, 9.99, 25, 99)[ProductID], Date = as.Date(Date))
+# Import transactions
+tx.fall   <- read.csv("input/fallfintrx.csv"   )
+tx.summer <- read.csv("input/summerfintrx.csv" )
+
+# We need to add monetary value and convert the date
+# This is the list of prices for each ProductID
+prices    <- c(2.99, 4.99, 9.99, 25, 99)
+tx.fall   <- tx.fall   %>% mutate(Value = prices[ProductID], Date = as.Date(Date))
+tx.summer <- tx.summer %>% mutate(Value = prices[ProductID], Date = as.Date(Date))
+
+# Then we create a data frame with all data
+tx.all    <- tx.fall %>% union(tx.summer)
+
+# And let's check what we have
 summary(tx.all)
 ```
 
+For later we need to keep the dates of beginning and ending of the periods:
+```{r}
+# This will correspond to the history period to build the models
+fall.begin   <- min(tx.fall$Date)
+fall.end     <- max(tx.fall$Date)
+
+# This will correspond to the forecast period to build and evaluate the models
+summer.begin <- min(tx.summer$Date)
+summer.end   <- max(tx.summer$Date)
+
+# This will correspond to the entire period to build the final model
+all.begin    <- min(tx.all$Date)
+all.end      <- max(tx.all$Date)
+```
+
+
+3) And finally the sessions:
+```{r}
+# Import sessions
+sessions.fall         <- read.csv("input/fallsesstrx.csv"  )
+sessions.summer       <- read.csv("input/summersesstrx.csv")
+sessions.fall$Date    <- as.Date(sessions.fall$Date)
+sessions.summer$Date  <- as.Date(sessions.summer$Date)
+
+sessions.all          <- sessions.fall %>% union(sessions.summer)
+```
+
+### RFM Analysis
+
+The point of this part is to calculate the RFM for all active customers.
+We could base our RFM analysis either on sessions or on transactions. We opted for RFM analysis based on transactions because it is a better proxy for monetary value of a customer.
+
+We defined:
+
+* **Recency** as the number of days since last transaction
+* **Frequency** as the number of transactions
+* **Monetary** value as the total value of all products bought in the period
 
 ```{r}
 # Calculated RFM based on all transactions (summer and fall)
 # for each customer (who made at least one transaction)
 customer.RFM <- tx.all %>%
   group_by(CustomerID) %>%
-  summarise(Recency = max(Date), Frequency = n(), Monetary = sum(Value)) %>%
-  inner_join(customer, by = 'CustomerID')
+  summarise(Recency = as.numeric(all.end-max(Date)), Frequency = n(), Monetary = sum(Value)) %>%
+  inner_join(customer, by = 'CustomerID') %>%
+  select(-X)
 
 summary(customer.RFM)
 ```
+Attention: since this list is build from `tx.all` it will only contain customers that made **at least one transaction**.
 
-
+Now let's create a list of active customers:
 ```{r}
-# Fetch all active customer
-customerID.active <- sessions.summer %>% select(CustomerID) %>% distinct(CustomerID)
-
-summary(customerID.active)
+# Get all customerIDs of people who played at least once during the summer
+customerID.active <- sessions.summer %>%
+  select(CustomerID) %>%
+  distinct(CustomerID)
 ```
 
+Now let's combine those last two tables to have a new table with the RFM value for all active customers (including those who never bought any item):
 ```{r}
 # Calculate the RFM value for active customers
 customer.active.RFM <- customerID.active %>%
   left_join(customer.RFM, by = "CustomerID") %>%
+  # We need to replace we 0 the missing values corresponding to customer who never bought any item
   mutate(Frequency = replace_na(Frequency, 0), Monetary = replace_na(Monetary, 0))
 
 summary(customer.active.RFM)
 ```
 
-
+Currently on this table we only have RFM and demographic data, we might also want sessions data, so let's add it:
 ```{r}
-customer.active <- customer.active.RFM %>%
-  left_join(customer, by = 'CustomerID') %>%
-  select(-X)
-
 customer.stats <- sessions.all %>%
   group_by(CustomerID) %>%
   select(-c(X, PlayID, Date)) %>%
   summarise_all(funs(sum))
 
-customer.active <- customer.active %>%
+customer.active <- customer.active.RFM %>%
   left_join(customer.stats, by = "CustomerID")
 
 summary(customer.active)
 ```
 
+### Customer Lifetime Value
+
+Customer Lifetime Value (CLV) is given by the formula:
+
+$$\sum_{t=0}^{T} m \frac{r^{t}}{(1+d)^{t}}-AC$$
+
+In order to calculate it we have 5 parameters to estimate:
+
+* $d$: Discount rate (Cost of Capital)
+* $AC$: Acquisition costs (per customer)
+* $r$: Retention probability for the customer
+* $T$: Number of years 'out'
+* $m$: Customer recurring contribution margin (which is equal to recurring revenues less recurring costs)
+
+Now let's make (reasonable) assumptions on those parameters.
+First, we decided to estimate all parameters excepted $m$ by values common to all customers. For $d$ or $T$, we have no reason to consider a different cost of capital or number of year out for a customer or another. For $AC$ we have no information concerning marketing operations that may have impacted it excepted the fall bonus, but we believe that it had little cost, little opportunity cost and had mostly an impact on $r$. On the opposite, we decided to estimate $m$ at a customer level based on past purchasing behaviour. For the purpose of this exercise we decided not to do the same technique for $r$ to keep a relatively simple model for CLV.
+
+**Discount Rate**
+
+Since we are studying an industry where customers have relatively small lifespan (inferior to 3 years), cost of capital will have a relatively small impact on CLV. We decided to take $d$ = 10% which seems to be a reasonable assumption for the software industry according to a [NYU study](http://people.stern.nyu.edu/adamodar/New_Home_Page/datafile/wacc.htm).
 
 ```{r}
-# Registration period
-days_in_registration_period <- as.numeric(as.Date(max(sessions.all$Date)) - as.Date(min(as.Date(customer$Registrationdate))))
-
-# Period of time of transactions
-days_in_period <- as.numeric(as.Date(max(sessions.all$Date)) - as.Date(min(sessions.all$Date)))
-
-total_daily_revenues <- sum(tx.all$Value) / days_in_period
-total_daily_marketing_cost <- 0.15 * total_daily_revenues
-total_marketing_cost_in_registration_period <- total_daily_marketing_cost * days_in_registration_period
-AC = total_marketing_cost_in_registration_period / count(customer)
-AC
+CLV.d <- 0.1
 ```
 
+**Acquisition Cost** (per customer)
+
+First, let's estimate the budget allocated to marketing given the assumption that it represents 15% of the revenues:
+```{r}
+# We'll need the period of time of transactions
+days_in_period <- as.numeric(all.end - all.begin)
+
+# Total daily revenues
+total_daily_revenues <- sum(tx.all$Value) / days_in_period
+
+# Total daily amount spend in marketing
+total_daily_marketing_cost <- 0.15 * total_daily_revenues
+```
+
+Now given this daily marketing spending, let's estimate the cost of acquisition per customer:
+```{r}
+# We'll need the period of time of registration
+days_in_registration_period <- as.numeric(max(sessions.all$Date) - min(as.Date(customer$Registrationdate)))
+
+# Now we want to calculate the cost per customer
+CLV.AC <- total_daily_marketing_cost * days_in_registration_period / nrow(customer)
+
+sprintf("Acquisition Cost is estimated to: $%.2f", CLV.AC)
+```
+
+**Retention rate**
+
+First we'll need to define when we consider that a customer has churned.
+
+To do that we might want to look at an histogram of the average time (in days) between two sessions. Let's do that:
 
 ```{r}
-CLV <- function (r) {
+customer.sessions <- sessions.all %>%
+  group_by(CustomerID) %>%
+  # avg_interval is the average interval in days between the first and the last session of a customer
+  summarise(first = min(Date), last = max(Date), count = n(), avg_interval = as.numeric(last - first)/count) %>%
+  # we can't calculate an interval with only one value so let's remove those lines
+  filter(count > 1)
+
+# Now let's plot that
+ggplot(customer.sessions) + geom_histogram(binwidth = 10) + aes(x = avg_interval)
+```
+
+We notice that more than 99% of customers have an average day interval between sessions inferior to 60 days. So let's define an active user as someone who played at least once in the last 60 days. Thus a user has churned if he has not played sessions in more than 60 days.
+
+Now to determine retention. To do this:
+
+1) We'll take a cohort of "active" as of June 30th (all the customers who played at least on session in may or june)
+2) In this cohort we'll check which one are still "active" as of October 31st (all the customers who played at least one session in september or october)
+3) The ratio of (2) over (1) represents the 4-month retention rate
+4) We will need to transform it to the annual retention rate
+
+```{r}
+# 1) Cohort
+cohort <- sessions.all %>%
+  filter(Date >= as.Date("2018-05-01"), Date < as.Date("2018-07-01")) %>%
+  group_by(CustomerID) %>%
+  distinct(CustomerID) %>%
+  select(CustomerID)
+
+# 2) Customer in cohort still active as of October 31st
+active <- sessions.all %>%
+  filter(Date >= as.Date("2018-09-01"), Date < as.Date("2018-11-01")) %>%
+  group_by(CustomerID) %>%
+  distinct(CustomerID) %>%
+  select(CustomerID)
+cohort.active <- cohort %>% inner_join(active, by = "CustomerID")
+
+# 3) 4-month retention rate
+r.4m <- nrow(cohort.active) / nrow(cohort)
+
+# 4) 1-year retention rate
+CLV.r <- r.4m^(12/4)
+
+sprintf("Retention rate is estimated to: %.2f percent", CLV.r*100)
+```
+
+**Number of years 'out'**
+
+In order to take no risk we will take $T$ so that after $T$ years a customer has a probability of having churn superior to 90%. In mathematical language this gives us: $T = ln(0.1) / ln(r)$
+
+```{r}
+CLV.T <- log(0.1) / log(CLV.r)
+
+sprintf("Number of years 'out' is estimated to: %.2f years", CLV.T)
+```
+
+**Customer recurring contribution margin**
+
+Now we want to estimate the contribution margin generated by a customer.
+
+For the purpose on this assignment we decided to assume that the recurring cost for all customers represented 10% of total revenues. So we applied calculation similar to $AC$
+
+```{r}
+CLV.rc <- 0.10 * total_daily_revenues * 365 / nrow(customer)
+```
+
+Now, let's focus on recurring revenues. First, we thought about estimating the recurring revenues by the average purchase by customer. But we figured that there were significant varation between the baskets of different customers. So we tried to apply the same reasoning at a customer level by estimating future purchases by past purchasing behaviour. But that does not account for the fact that the average amount bought in previous periods is a poor estimator future purchases. Indeed, using such model a user that has never bought anything will never buy anything, so he has inevitaly a negative CLV which should not always be the case.
+
+So, in the end we chose to build a linear model to estimate how much a customer is likely to buy in october based on his purchasing behaviour of the previous months.
+
+First, let's build tables containing information of past purchases, by customer and by month:
+
+```{r}
+all.customerID <- data_frame(CustomerID=customer$CustomerID)
+tx.all$Month = format(tx.all$Date, "%m")
+columns <- c('05', '06', '07', '08', '09', '10')
+monthly.tx.all <- all.customerID %>%
+  left_join(tx.all, by = "CustomerID") %>%
+  spread(Month, Value) %>%
+  select(-c(X:ProductID)) %>%
+  mutate_at(.vars = columns, funs(replace_na(.,0))) %>%
+  group_by(CustomerID) %>%
+  summarise_at(.vars = columns, funs(sum))
+head(monthly.tx.all)
+
+monthly.tx <-
+  tx.all %>%
+  spread(Month, Value) %>%
+  select(-c(X:Date, ProductID)) %>%
+  mutate_at(.vars = columns, funs(replace_na(.,0))) %>%
+  group_by(CustomerID) %>%
+  summarise_at(.vars = columns, funs(sum))
+head(monthly.tx)
+```
+
+We comes the estimation of the recurring revenues of each customer:
+
+```{r}
+set.seed(11)
+
+# select the indexes of the rows in the training set
+train.index <- createDataPartition(
+  monthly.tx.all$`10`,
+  p = .9,
+  list = FALSE,
+  times = 1
+  )
+
+# split the data
+train   <- monthly.tx.all[ train.index,]
+test    <- monthly.tx.all[-train.index,]
+train.y <- train$`10`
+test.y  <- test$`10`
+
+# build the model
+# after trying different models we kept the linear model because it was more simple with very comparable results
+# we decided to add an intercept variable to account for the fact that a user who never bought anything might start buying
+# This has a HUGE impact on the final result:
+#     with intercept, a customer who as never bought as a CLV of 2.5
+#     without intercept, a customer who as never bought as a CLV of -5.5
+# The answer
+model <- lm(`10`~. - CustomerID, data=train)
+
+# check the model
+summary(model)
+
+# check the performance of the model
+train.pred <- predict(model, train)
+test.pred  <- predict(model, test)
+sprintf("Average absolute error by customer (on training set): $%.2f", mean(abs(train.y-train.pred)))
+sprintf("Average absolute error by customer (on testing set): $%.2f", mean(abs(test.y-test.pred)))
+```
+
+Not surprisingly, the results aren't incredible, but we wouldn't study Customer Analytcis if it were possible to perfectly predict what a customer will buy in the future.
+
+Still, it is a better estimator of what's he is going to buy than the average of what he bought the past months (see results below). And our model is surely more performant to estimate what our customer will keep buying in the months after October.
+
+```{r}
+print(mean(abs(test.y-rowMeans(test[,-c(1,7)]))))
+```
+
+**Calculation of CLV**
+
+Now that we have estimated all parameters:
+
+```{r}
+CLV.const = data_frame(AC=CLV.AC, rc=CLV.rc, r=CLV.r, T=CLV.T, d=CLV.d)
+CLV.const
+```
+
+We can create the CLV function:
+
+```{r}
+CLV <- function (CLV.const, model, id) {
+  df_id <- data_frame(CustomerID=id)
+  model.input <- df_id %>% left_join(monthly.tx.all, by = "CustomerID")
   # Period of time to convert revenue to (annual) recurring revenue
-  days_in_period <- as.numeric(as.Date(max(sessions.all$Date)) - as.Date(min(sessions.all$Date)))
-  rr <- r * 365 / days_in_period
+  rr <- 12 * predict(model, model.input)
 
   # Customer value
-  AC <- 0       # Customer acquisition costs
-  rc <- 0       # Recurring cost
-  m  <- rr - rc # Customer recurring contribution margin
-  r  <- 0.5     # Retention probability for the customer
-  t  <- 5       # Number of years 'out' to estimate
-  d  <- 0.1     # Discount rate (Cost of Capital)
+  AC <- CLV.const$AC       # Customer acquisition costs
+  rc <- CLV.const$rc       # Recurring cost
+  m  <- rr - CLV.const$rc  # Customer recurring contribution margin
+  r  <- CLV.const$r        # Retention probability for the customer
+  t  <- CLV.const$T        # Number of years 'out' to estimate
+  d  <- CLV.const$d        # Discount rate (Cost of Capital)
 
-  clv <- AC
+  # print(cbind(AC, rc, m, r, t, d))
+
+  clv <- -AC
   for(i in 0:t) {
     clv <- clv+((r^i)*m/(1+d)^i)
   }
@@ -139,25 +385,26 @@ CLV <- function (r) {
 }
 ```
 
+And calculate le clv for every customer:
 
 ```{r}
-clv <- customer.active %>% mutate(CLV = CLV(Monetary))
+clv <- customer.active %>% mutate(CLV = CLV(CLV.const, model, CustomerID))
 summary(clv)
 ```
+
+### Profiling
 
 ```{r}
 ggplot(customer.active)+aes(x=CustomerType,fill=as.factor(Sex))+geom_bar()
 ggplot(customer.active)+aes(x=Sex,fill=as.factor(CustomerType))+geom_bar()
 ```
 
-
-
-Assignment 2, Lifecycle grids: 
+# Assignment 2, Lifecycle grids:
 
 In life cycle grids, we are focusing on the R & F of RFM. In other words, in frequent and recent purchases because frequency affects client???s lifetime value and recency affects retention.
 The purpose therefore is to provide a target offer to specific segments or customers.
 
-1. Introduction
+### Introduction
 
 Let's firt go thrgouh very basic descriptive analysis to get a few insights about the data: Player Profile, Age, Fallbonus or not and Income.
 
@@ -172,7 +419,7 @@ ggplot(customer_type_number) + aes(x=CustomerType,y=Number_per_Type) + geom_bar(
 customer_sex <- customer %>% group_by(Sex) %>% summarise(Number_per_Sex=n())
 ggplot(customer_sex) + aes(x=Sex,y=Number_per_Sex) + geom_bar(stat="identity")
 
-#per Age 
+#per Age
 customer_age <- customer %>% group_by(Age) %>% summarise(Number_per_Age = n())
 ggplot(customer_age) + aes(x=Age,y=Number_per_Age) + geom_line()
 
@@ -181,8 +428,8 @@ customer_income <- customer %>% group_by(Income) %>% summarise(Number_per_Income
 ggplot(customer_income) + aes(x=Income,y=Number_per_Income) + geom_bar(stat="identity")
 ```
 
-What we can deduce from those first descriptive anaylysis is that only variable Age is determinant in term of number of players. In other words, there is a massive number of players between 23 and 35 years old, a great number before 20 and very little players after 40. 
-Regarding other variables there is no elements that could be helpful for the rest. 
+What we can deduce from those first descriptive anaylysis is that only variable Age is determinant in term of number of players. In other words, there is a massive number of players between 23 and 35 years old, a great number before 20 and very little players after 40.
+Regarding other variables there is no elements that could be helpful for the rest.
 
 Now, let's have a look to the frequency and monetary variables considering the fallbonus:
 
@@ -193,15 +440,15 @@ ggplot(customer.RFM) + aes(x=Frequency,y=Monetary,col=Income)+geom_point()+theme
 ggplot(customer.RFM) + aes(x=Frequency,y=Monetary,col=fallbonus)+geom_point()+theme_classic()
 ggplot(customer.RFM) + aes(x=Frequency,y=Monetary,col=Age_category)+geom_point()+theme_classic()
 ```
-Basically, there seems to be clear mixing between customers and it's difficult to see whether there is are trends regarding each variable considered. 
+Basically, there seems to be clear mixing between customers and it's difficult to see whether there is are trends regarding each variable considered.
 
-However, despite the fact that the number of players can be different regarding some of the variables we previously took in account, we are interested here in the number of transactions and the monetary value of transactions. This is a complete different approach. 
+However, despite the fact that the number of players can be different regarding some of the variables we previously took in account, we are interested here in the number of transactions and the monetary value of transactions. This is a complete different approach.
 
-2. Life Cycle grids
+### Life Cycle grids
 
-Let's do now life cycle grids. 
+Let's do now life cycle grids.
 
-We will first have a look at the volume of transactions regarding the period (recency) and the frequency.  
+We will first have a look at the volume of transactions regarding the period (recency) and the frequency.
 
 ```{r}
 # creating recency and frequency groups on the 31-10-2018
@@ -237,10 +484,10 @@ ggplot(lcg.1, aes(x=client, y=quantity, fill=quantity))+
 ```{r}
 #second glance in terms of value (total revenue & average revenue) of transactions for each sub-category
 
-lcg.2 <- customer.LCG %>% 
-  group_by(segm.rec,segm.freq) %>% 
-  summarise(quantity=round(sum(Monetary)),value_ratio=round(mean(Monetary))) %>% 
-  mutate(client='client') %>% 
+lcg.2 <- customer.LCG %>%
+  group_by(segm.rec,segm.freq) %>%
+  summarise(quantity=round(sum(Monetary)),value_ratio=round(mean(Monetary))) %>%
+  mutate(client='client') %>%
   ungroup()
 
 ggplot(lcg.2, aes(x=client, y=quantity, fill=quantity))+
@@ -253,7 +500,7 @@ ggplot(lcg.2, aes(x=client, y=quantity, fill=quantity))+
   ggtitle("LifeCycle Grids: Preview of Value of transactions (Total & Average)")
 ```
 
-Now we will only deal with the monetary value of transactions, as it is the Niantic purpose, but with a focus per sub-category: Player Profile, Fallbonus, Income and Age.   
+Now we will only deal with the monetary value of transactions, as it is the Niantic purpose, but with a focus per sub-category: Player Profile, Fallbonus, Income and Age.
 
 ```{r}
 #Focus on Customer Type
@@ -328,6 +575,3 @@ ggplot(lcg.5, aes(x=Age_category, y=quantity, fill=quantity))+
   facet_grid(segm.freq ~ segm.rec)+
   ggtitle("LifeCycle Grids: Monetary Value (Total & Average) per Age")
 ```
-
-
-
