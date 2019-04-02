@@ -10,3 +10,8 @@ pre {
 p {
     padding-top: 15px !important;
 }
+
+img {
+    display: block !important;
+    margin: auto !important;
+}
