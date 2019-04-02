@@ -144,7 +144,7 @@ ggplot(customer.active)+aes(x=Sex,fill=as.factor(CustomerType))+geom_bar()
 
 Assignment 2, Lifecycle grids: 
 
-In life cycle grids, we are focusing on the R & F of RFM. In other words, in frequent and recent purchases because frequency affects client’s lifetime value and recency affects retention.
+In life cycle grids, we are focusing on the R & F of RFM. In other words, in frequent and recent purchases because frequency affects client???s lifetime value and recency affects retention.
 The purpose therefore is to provide a target offer to specific segments or customers.
 
 1. Introduction
@@ -294,10 +294,11 @@ Let's create more categories of Age regarding the first graph we found :
 # As we saw in the preliminitary work, there is huge difference for age, and we can categorise them 
 #as 7-23, 24-35, 36-50 and above 51
 customer.LCG <- customer.LCG %>%
-  mutate(Age=ifelse(between(Age, 6, 23), '6-23',
+  mutate(Age=ifelse(between(Age, 6, 17), '6-17',
+                    ifelse(between(Age, 18, 23), '18-23',
                           ifelse(between(Age, 24, 35), '24-35',
-                                 ifelse(between(Age, 36, 50), '36-50', '>51'))))
-customer.LCG$Age <- factor(customer.LCG$Age, levels=c('6-23', '24-35', '36-50', '>51'))
+                                 ifelse(between(Age, 36, 50), '36-50', '>51')))))
+customer.LCG$Age <- factor(customer.LCG$Age, levels=c('6-17', '18-23', '24-35', '36-50', '>51'))
 customer.LCG
 ```
 
