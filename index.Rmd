@@ -623,3 +623,15 @@ summary(model.churn.3)
 This last model seems quite good as we have almost the same AIC criterion as the full model, which means that this model contains almost the same amount of information as the best one in the family of the logistic regression models.
 
 Thus, we may conclude that the fall bonus, the recency of buying and the experience of the player are the three variables that explains most of the predictable churn.
+
+To avoid churning in the future, we have build marketing strategies that will maximise the experience gain by the players and minimise their recency.
+
+Thus, we think about giving bonus of experience for the players during the 15 days following the purchase a product. This will give an incentive to the players to keep playing and purchasing, so it will decrease recency.
+
+To maximise the experience of the player, the idea is to give bonus of experience for special quests achievements & challenges. We do not want to decrease the value of experience, it has to be a fair reward. Thus, we will propose for instance bonus of experience to the players who catched 10 pokemons of type Water during five days.
+
+### Calculation for CRM recommendation
+
+```{r}
+customer.active %>% group_by(CustomerType) %>% summarise(mean(Monetary),mean(Frequency),mean(CLV))
+```
