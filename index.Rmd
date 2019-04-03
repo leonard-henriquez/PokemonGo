@@ -405,43 +405,52 @@ summary(customer.active)
 
 We will sketch general profiles of the active customers.
 
-First, let's have a look at how customer types are dispatched among gender of the players :
+First, let's have a look at how gender of the players are dispatched among the playsers :
 
 ```{r}
-ggplot(customer.active)+aes(x=Sex,fill=as.factor(CustomerType))+geom_bar()
+ggplot(customer.active)+aes(x=Sex)+geom_bar()
+
 ```
 
-We can see on this barplot that even if there are more Men playing to PokemonGO overall, the repartitin of customer type per sex is well balanced.
+We can see that there are more male players overall.
 
-We'll know have a look at how customer types are dispatched among the age category of the players :
+Now, we will consider that the general profile of a player is a male and we'll now have a look at how they are dispatched through age categories.
 
 ```{r}
-ggplot(customer.active)+aes(x=Age_category,fill=as.factor(CustomerType))+geom_bar()
+ggplot(customer.active %>% filter(Sex==0))+aes(x=Age_category)+geom_bar()
 ```
 
-We can see that even if there are more players between 24-35 overall, the repartition of customer type is well balanced for each age category.
+We can see that there are much more players between 24-35 overall. Thus, most of the players are male between 24-35.
 
-The last demographic metric for which we'll have a look is how customer types are dispatched among the income level of the players :
-
+Now, we'll comapre the income level of male players between 24-35 :
 
 ```{r}
-ggplot(customer.active)+aes(x=Income,fill=as.factor(CustomerType))+geom_bar()
+ggplot(customer.active %>% filter(Age_category == "24-35", Sex == 0)) + aes(x=Income) + geom_bar()
 ```
 
-Once again, the repartition of customer type is well balanced for each level income.
+Thus, we can see that the number of players is quite the same per income level. There is no significative difference. We can deduce that a general player can have any level of income.
 
-Thus, if we take into account the total number of players for demographic metrics, the profile of a general player would be a male between 24-35 and with an income level of 3 (high).
+Thus, if we take into account the total number of players per demographic metrics, the profile of a general player would be a male between 24-35 and with any income level.
 
-Now, let's add in our reasonning the financial value using Monetary and Frequency for the demographic profile we chose juste above.
+Now, let's add in our reasonning the type of player with the general demographic profile we found.
 
 ```{r}
-customer.active %>% filter(Age_category == "24-35", Sex == 0, Income == 3)  %>% group_by(CustomerType) %>% summarise(n(),mean(Monetary),mean(Frequency),mean(CLV))
+ggplot(customer.active %>% filter(Age_category == "24-35", Sex == 0)) +aes(x=Age_category,fill=as.factor(CustomerType))+geom_bar()
+
+```
+
+Once again, we can see no significative difference between the customer type, even if the "Catchers" are the most numerous. Thus, we will consider that these players can be of any type.
+
+Now, let's add in our reasonning the financial value using Monetary and Frequency for the demographic profile we chose.
+
+
+```{r}
+customer.active %>% filter(Age_category == "24-35", Sex == 0) %>% summarise(mean(Monetary),mean(Frequency),mean(CLV))
 ```
 
 Thus, we can complete the general profile by saying that can the general profile is a player :
-- male between 24-35 with a high income level
-- a "Catcher"
-- spending on average 4.5 with a frequency of 0.61 on the period. 
+- male between 24-35
+- spending on average 6.13 with a frequency of 0.61 on the period. 
 
 
 # Assignment II, Lifecycle grids:
@@ -648,3 +657,15 @@ summary(model.churn.3)
 This last model seems quite good as we have almost the same AIC criterion as the full model, which means that this model contains almost the same amount of information as the best one in the family of the logistic regression models.
 
 Thus, we may conclude that the fall bonus, the recency of buying and the experience of the player are the three variables that explains most of the predictable churn.
+
+To avoid churning in the future, we have build marketing strategies that will maximise the experience gain by the players and minimise their recency.
+
+Thus, we think about giving bonus of experience for the players during the 15 days following the purchase a product. This will give an incentive to the players to keep playing and purchasing, so it will decrease recency.
+
+To maximise the experience of the player, the idea is to give bonus of experience for special quests achievements & challenges. We do not want to decrease the value of experience, it has to be a fair reward. Thus, we will propose for instance bonus of experience to the players who catched 10 pokemons of type Water during five days.
+
+### Calculation for CRM recommendation
+
+```{r}
+customer.active %>% group_by(CustomerType) %>% summarise(mean(Monetary),mean(Frequency),mean(CLV))
+```
