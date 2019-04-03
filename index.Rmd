@@ -607,6 +607,68 @@ ggplot(lcg.clv, aes(x=client, y=clv_avg, fill=client)) +
 
 Note that the width of bars depends on the quantity (i.e: the number of customers in this sub-category).
 
+#### Lifecycle grids for sessions
+
+In this case, it could be also interesting to consider sessions also to suggest maketing strategies for Niantic. 
+
+So let's do lifecycle grids but for sessions this time. 
+
+
+```{r}
+# Data construction
+customer.sessions.RF.no_purchase <- customer %>%
+  left_join(customer.sessions, by = 'CustomerID') %>%
+  filter(Frequency == 0, !is.na(count)) %>%
+  mutate(Recency = all.end - last, Frequency = count) %>%
+  select (CustomerID, Recency, Frequency)
+summary(customer.sessions.RF.no_purchase)
+```
+
+```{r}
+#Grids creation
+customer.sessions.RF.no_purchase <- customer.sessions.RF.no_purchase %>%
+  mutate(segm.freq=ifelse(Frequency == 2, '2',
+                          ifelse(Frequency == 3, '3',
+                                 ifelse(Frequency == 4, '4',
+                                      ifelse(Frequency == 5, '5',
+                                             ifelse(between(Frequency,6,7),'6-7','>7')))))) %>%
+  mutate(segm.rec=ifelse(between(Recency,0,6), '0-6 days',
+                          ifelse(between(Recency,7,13), '7-13 days',
+                                  ifelse(between(Recency, 14,30), '14-30 days',
+                                         ifelse(between(Recency,31,50), '31-50 days',
+                                               ifelse(between(Recency,51,85), '51-85 days', '>85 days'))))))
+
+# spliting into discrete groups with levels to make & identify grids later on
+customer.sessions.RF.no_purchase$segm.freq <- factor(customer.sessions.RF.no_purchase$segm.freq, levels=c('>7','6-7','5','4','3','2'))
+customer.sessions.RF.no_purchase$segm.rec <- factor(customer.sessions.RF.no_purchase$segm.rec, levels=c('>85 days','51-85 days','31-50 days','14-30 days','7-13 days','0-6 days'))
+
+summary(customer.sessions.RF.no_purchase)
+```
+
+```{r}
+lcg.sessions <- customer.sessions.RF.no_purchase %>%
+  group_by(segm.rec, segm.freq) %>%
+  summarise(quantity=n()) %>%
+  mutate(client='client') %>%
+  ungroup()
+
+#let's add sub-categories to better distinguish customer profiles in our grids
+lcg.sessions <- lcg.sessions %>% mutate(rec.type = ifelse(segm.rec %in% c('>85 days', '51-85 days', '31-50 days'), 'not recent', 'recent'),
+ freq.type = ifelse(segm.freq %in% c('>7', '6-7'), 'frequent', 'infrequent'),
+ customer.bh = interaction(rec.type, freq.type))
+
+
+ggplot(lcg.sessions, aes(x=client, y=quantity, fill=customer.bh))+
+  theme_bw() +
+  theme(panel.grid = element_blank())+
+  geom_bar(stat='identity', alpha=0.7) +
+  geom_rect(aes(fill = customer.bh), xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf, alpha = 0.1) +
+  geom_text(aes(y=max(quantity)/2, label=quantity), size=4) +
+  facet_grid(segm.freq ~ segm.rec)+
+  ggtitle("LifeCycle Grids: Number of sessions and underlying categorisation")
+```
+
+
 # Assigment III, Churn analysis
 
 In this assignment we want to understand more what are the variables that have an impact on churn to be able to predict churn better.
