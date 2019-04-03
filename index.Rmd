@@ -452,39 +452,20 @@ The purpose therefore is to provide a target offer to specific segments or custo
 
 ### Introduction
 
-Let's firt go through very basic descriptive analysis to get a few insights about the data: Player Profile, Age, Fallbonus or not and Income.
-
 ```{r}
-#Very descriptive: look at the number of customers for descriptive purposes
-
-#per type
-customer_type_number <- customer.active %>% group_by(CustomerType) %>% summarise(Number_per_Type = n())
-ggplot(customer_type_number) + aes(x=CustomerType,y=Number_per_Type) + geom_bar(stat="identity")
-
-#per sex
-customer_sex <- customer.active %>% group_by(Sex) %>% summarise(Number_per_Sex=n())
-ggplot(customer_sex) + aes(x=Sex,y=Number_per_Sex) + geom_bar(stat="identity")
-
-#per Age
-customer_age <- customer.active %>% group_by(Age) %>% summarise(Number_per_Age = n())
-ggplot(customer_age) + aes(x=Age,y=Number_per_Age) + geom_line()
-
-#per income
-customer_income <- customer.active %>% group_by(Income) %>% summarise(Number_per_Income = n())
-ggplot(customer_income) + aes(x=Income,y=Number_per_Income) + geom_bar(stat="identity")
+#Initialisation: combining overall transactions with customer info
+customer.LCG <- tx.all %>% select(-X) %>% inner_join(customer)
+summary(customer.LCG)
 ```
 
-What we can deduce from those first descriptive anaylysis is that only variable Age is determinant in term of number of players. In other words, there is a massive number of players between 23 and 35 years old, a great number before 20 and very little players after 40.
-Regarding other variables there is no elements that could be helpful for the rest.
-
-Now, let's have a look to the frequency and monetary variables considering the fallbonus:
+Let's firt go through very basic descriptive analysis to get a few insights about the data: Player Profile, Age, Fallbonus or not and Income in terms of Monetary value: 
 
 ```{r}
-ggplot(customer.active) + aes(x=Frequency,y=Monetary,col=CustomerType)+geom_point()+theme_classic()
-ggplot(customer.active) + aes(x=Frequency,y=Monetary,col=Sex)+geom_point()+theme_classic()
-ggplot(customer.active) + aes(x=Frequency,y=Monetary,col=Income)+geom_point()+theme_classic()
-ggplot(customer.active) + aes(x=Frequency,y=Monetary,col=fallbonus)+geom_point()+theme_classic()
-ggplot(customer.active) + aes(x=Frequency,y=Monetary,col=Age_category)+geom_point()+theme_classic()
+ggplot(customer.LCG) + aes(x=Frequency,y=Monetary,col=CustomerType)+geom_point()+theme_classic()
+ggplot(customer.LCG) + aes(x=Frequency,y=Monetary,col=Sex)+geom_point()+theme_classic()
+ggplot(customer.LCG) + aes(x=Frequency,y=Monetary,col=Income)+geom_point()+theme_classic()
+ggplot(customer.LCG) + aes(x=Frequency,y=Monetary,col=fallbonus)+geom_point()+theme_classic()
+ggplot(customer.LCG) + aes(x=Frequency,y=Monetary,col=Age_category)+geom_point()+theme_classic()
 ```
 Basically, there seems to be clear mixing between customers and it's difficult to see whether there is are trends regarding each variable considered.
 
@@ -497,16 +478,35 @@ Let's do now life cycle grids.
 We will first have a look at the volume of transactions regarding the period (recency) and the frequency.
 
 ```{r}
-# creating recency and frequency groups on the 31-10-2018
-customer.LCG <- customer.active %>%
-  mutate(segm.freq=ifelse(between(Frequency, 1, 2), '1-2',
-                          ifelse(between(Frequency, 3, 5), '3-5', '>5'))) %>% mutate(segm.rec=ifelse(between(Recency, as.Date("2018-09-01"),as.Date("2018-10-31")), 'Fall', 'Summer'))
+#Now, let's move to our LCG
+customer.LCG <- customer.LCG %>%
+  mutate(segm.freq=ifelse(Frequency == 1, '1',
+                          ifelse(Frequency == 2, '2',
+                                 ifelse(Frequency == 3, '3',
+                                      ifelse(Frequency == 4, '4',
+                                             ifelse(Frequency == 5,'5','>5')))))) %>%
+  mutate(segm.rec=ifelse(between(Recency,0,6), '0-6 days',
+                          ifelse(between(Recency,7,13), '7-13 days', 
+                                  ifelse(between(Recency, 14,30), '14-30 days',
+                                         ifelse(between(Recency,31,50), '31-50 days',
+                                               ifelse(between(Recency,51,85), '51-85 days', '>85 days'))))))
 
 # spliting into discrete groups with levels to make & identify grids later on
-customer.LCG$segm.freq <- factor(customer.LCG$segm.freq, levels=c('1-2', '3-5', '>5'))
-customer.LCG$segm.rec <- factor(customer.LCG$segm.rec, levels=c('Fall', 'Summer'))
+customer.LCG$segm.freq <- factor(customer.LCG$segm.freq, levels=c('>5','5','4','3','2','1'))
+customer.LCG$segm.rec <- factor(customer.LCG$segm.rec, levels=c('>85 days','51-85 days','31-50 days','14-30 days','7-13 days','0-6 days'))
 
 summary(customer.LCG)
+```
+
+
+```{r}
+# Frequency distribution
+ggplot(customer.LCG)+aes(x=Frequency)+geom_bar()
+```
+
+```{r}
+#Distribution of Recency (by days)
+ggplot(customer.LCG)+aes(x=Recency)+geom_bar()
 ```
 
 ```{r}
@@ -518,109 +518,38 @@ lcg.1 <- customer.LCG %>%
   mutate(client='client') %>%
   ungroup()
 
-ggplot(lcg.1, aes(x=client, y=quantity, fill=quantity))+
+#let's add sub=categories to better distinguish customer profiles
+lcg.1 <- lcg.1 %>% mutate(rec.type = ifelse(segm.rec %in% c('>85 days', '51-85 days', '31-50 days'), 'not recent', 'recent'),
+ freq.type = ifelse(segm.freq %in% c('>5', '5', '4'), 'frequent', 'infrequent'),
+ customer.bh = interaction(rec.type, freq.type))
+
+
+ggplot(lcg.1, aes(x=client, y=quantity, fill=customer.bh))+
   theme_bw() +
   theme(panel.grid = element_blank())+
-  geom_bar(stat='identity', alpha=0.6) +
+  geom_bar(stat='identity', alpha=0.7) +
+  geom_rect(aes(fill = customer.bh), xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf, alpha = 0.1) +
   geom_text(aes(y=max(quantity)/2, label=quantity), size=4) +
   facet_grid(segm.freq ~ segm.rec)+
-  ggtitle("LifeCycle Grids: Preview Number of transactions")
+  ggtitle("LifeCycle Grids: Number of transactions and underlying categorisation")
 ```
 
 ```{r}
-#second glance in terms of value (total revenue & average revenue) of transactions for each sub-category
-
 lcg.2 <- customer.LCG %>%
-  group_by(segm.rec,segm.freq) %>%
-  summarise(quantity=round(sum(Monetary)),value_ratio=round(mean(Monetary))) %>%
-  mutate(client='client') %>%
+  group_by(segm.rec, segm.freq,CustomerType,fallbonus) %>%
+  summarise(quantity=n()) %>%
   ungroup()
 
-ggplot(lcg.2, aes(x=client, y=quantity, fill=quantity))+
+ggplot(lcg.2, aes(x=CustomerType, y=quantity, fill=fallbonus))+
   theme_bw() +
+  scale_fill_brewer(palette = 'Set1')+
   theme(panel.grid = element_blank())+
   geom_bar(stat='identity', alpha=0.6) +
-  geom_text(aes(y=max(quantity)/2, label=value_ratio), size=3) +
-  geom_text(aes(y=max(quantity)/3, label=quantity), size=4) +
   facet_grid(segm.freq ~ segm.rec)+
-  ggtitle("LifeCycle Grids: Preview of Value of transactions (Total & Average)")
-```
-
-Now we will only deal with the monetary value of transactions, as it is the Niantic purpose, but with a focus per sub-category: Player Profile, Fallbonus, Income and Age.
-
-```{r}
-#Focus on Customer Type
-
-lcg.3 <- customer.LCG %>%
-  group_by(segm.rec, segm.freq, CustomerType) %>%
-  summarise(quantity=round(sum(Monetary)),value_ratio=round(mean(Monetary))) %>%
-  ungroup()
-
-ggplot(lcg.3, aes(x=CustomerType, y=quantity, fill=quantity))+
-  theme_bw() +
-  theme(panel.grid = element_blank())+
-  geom_bar(stat='identity', alpha=0.6) +
-  geom_text(aes(y=max(quantity)/2, label=value_ratio), size=3) +
-  geom_text(aes(y=max(quantity)/3, label=quantity), size=4) +
-  facet_grid(segm.freq ~ segm.rec)+
-  ggtitle("LifeCycle Grids: Monetary Value (Total & Average) per CustomerType")
-
-```
-
-```{r}
-# Focus on Fall Bonus
-
-lcg.4 <- customer.LCG %>%
-  group_by(segm.rec, segm.freq, fallbonus) %>%
-  summarise(quantity=round(sum(Monetary)),value_ratio=round(mean(Monetary))) %>%
-  ungroup()
-
-ggplot(lcg.4, aes(x=fallbonus, y=quantity, fill=quantity))+
-  theme_bw() +
-  theme(panel.grid = element_blank())+
-  geom_bar(stat='identity', alpha=0.6) +
-  geom_text(aes(y=max(quantity)/2, label=value_ratio), size=3) +
-  geom_text(aes(y=max(quantity)/3, label=quantity), size=4) +
-  facet_grid(segm.freq ~ segm.rec)+
-  ggtitle("LifeCycle Grids: Monetary Value (Total & Average) per FallBonus")
-```
-
-```{r}
-# Focus on Income
-
-lcg.4 <- customer.LCG %>%
-  group_by(segm.rec, segm.freq, Income) %>%
-  summarise(quantity=round(sum(Monetary)),value_ratio=round(mean(Monetary))) %>%
-  ungroup()
-
-ggplot(lcg.4, aes(x=Income, y=quantity, fill=quantity))+
-  theme_bw() +
-  theme(panel.grid = element_blank())+
-  geom_bar(stat='identity', alpha=0.6) +
-  geom_text(aes(y=max(quantity)/2, label=value_ratio), size=3) +
-  geom_text(aes(y=max(quantity)/3, label=quantity), size=4) +
-  facet_grid(segm.freq ~ segm.rec)+
-  ggtitle("LifeCycle Grids: Monetary Value (Total & Average) per FallBonus")
+  ggtitle("LifeCycle Grids: Number of by CustomerType and fallbonus")
 ```
 
 
-```{r}
-#Focus on Age
-
-lcg.5 <- customer.LCG %>%
-  group_by(segm.rec, segm.freq, Age_category) %>%
-  summarise(quantity=round(sum(Monetary)),value_ratio=round(mean(Monetary))) %>%
-  ungroup()
-
-ggplot(lcg.5, aes(x=Age_category, y=quantity, fill=quantity))+
-  theme_bw() +
-  theme(panel.grid = element_blank())+
-  geom_bar(stat='identity', alpha=0.6) +
-  geom_text(aes(y=max(quantity)/2, label=value_ratio), size=3) +
-  geom_text(aes(y=max(quantity)/3, label=quantity), size=4) +
-  facet_grid(segm.freq ~ segm.rec)+
-  ggtitle("LifeCycle Grids: Monetary Value (Total & Average) per Age")
-```
 
 # Assigment III, Churn analysis
 
