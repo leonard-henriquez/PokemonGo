@@ -450,7 +450,7 @@ customer.active %>% filter(Age_category == "24-35", Sex == 0) %>% summarise(mean
 
 Thus, we can complete the general profile by saying that can the general profile is a player :
 - male between 24-35
-- spending on average 6.13 with a frequency of 0.61 on the period. 
+- spending on average 6.13 with a frequency of 0.61 on the period.
 
 
 # Assignment II, Lifecycle grids:
@@ -482,13 +482,13 @@ ggplot(customer.LCG)+aes(x=Recency)+geom_bar()
 
 #### Introduction
 
-Let's do now life cycle grids. In this part, we decided to consider frequency one by one until customers buy more that 5 products (because the gap between 1 and 2 products cannot be equally considered to the one between 5 and 6 products bought). 
+Let's do now life cycle grids. In this part, we decided to consider frequency one by one until customers buy more that 5 products (because the gap between 1 and 2 products cannot be equally considered to the one between 5 and 6 products bought).
 
-We use the 'same' principle to split the recency. More specifically, we decided segment them - regarding Niantic purposes - using relevant time periods: 
+We use the 'same' principle to split the recency. More specifically, we decided segment them - regarding Niantic purposes - using relevant time periods:
 
 - 0-6 days & 7-13: customers that can be considered as very frequent buyers
 - 14-30 : customers that bought recently (during fall period but seems to have slowed down their use of their use of package to play)
-- 31-50: customers that haven't bought for a quite long period and that could we should focus on to reengage 
+- 31-50: customers that haven't bought for a quite long period and that could we should focus on to reengage
 - 51-85: customers that stopped to buy after the summer period - we should especially look at those ones to improve the marketing strategy purpose between summer and fall periods
 - 85: Finally, customers that can be considers as long-time buyers or those who follow the Pokemon Go trend of the summer but who were not really interested to evolve rapidly with Pokemon's packages
 
@@ -501,7 +501,7 @@ customer.LCG <- customer.LCG %>%
                                       ifelse(Frequency == 4, '4',
                                              ifelse(Frequency == 5,'5','>5')))))) %>%
   mutate(segm.rec=ifelse(between(Recency,0,6), '0-6 days',
-                          ifelse(between(Recency,7,13), '7-13 days', 
+                          ifelse(between(Recency,7,13), '7-13 days',
                                   ifelse(between(Recency, 14,30), '14-30 days',
                                          ifelse(between(Recency,31,50), '31-50 days',
                                                ifelse(between(Recency,51,85), '51-85 days', '>85 days'))))))
@@ -542,55 +542,70 @@ ggplot(lcg.gen, aes(x=client, y=quantity, fill=customer.bh))+
 ```
 
 ```{r}
-lcg.bonus_type <- customer.LCG %>%
-  group_by(segm.rec, segm.freq,CustomerType,fallbonus) %>%
+lcg.bonus <- customer.LCG %>%
+  group_by(segm.rec, segm.freq,fallbonus) %>%
   summarise(quantity=n()) %>%
+  mutate(client='client') %>%
   ungroup()
 
-ggplot(lcg.bonus_type, aes(x=CustomerType, y=quantity, fill=fallbonus))+
+ggplot(lcg.bonus, aes(x=client, y=quantity, fill=fallbonus))+
   theme_bw() +
   scale_fill_brewer(palette = 'Set1')+
   theme(panel.grid = element_blank())+
-  geom_bar(stat='identity', alpha=0.6) +
+  geom_bar(stat='identity', position = 'fill', alpha=0.6) +
   facet_grid(segm.freq ~ segm.rec)+
-  ggtitle("LifeCycle Grids: Number of transactions by CustomerType and fallbonus")
+  ggtitle("LifeCycle Grids: Number of transactions fallbonus (proportion)")
+```
+
+```{r}
+lcg.type <- customer.LCG %>%
+  group_by(segm.rec, segm.freq, CustomerType) %>%
+  summarise(quantity=n()) %>%
+  mutate(client='client') %>%
+  ungroup()
+
+ggplot(lcg.type, aes(x=client, y=quantity, fill=CustomerType))+
+  theme_bw() +
+  scale_fill_brewer(palette = 'Set1')+
+  theme(panel.grid = element_blank())+
+  geom_bar(stat='identity', position = 'fill', alpha=0.6) +
+  facet_grid(segm.freq ~ segm.rec)+
+  ggtitle("LifeCycle Grids: Number of transactions by CustomerType")
 ```
 
 
 #### Approach in Monetary Value for transactions
 
-The monetary value is very interesting to improve the marketing strategy. 
+The monetary value is very interesting to improve the marketing strategy.
 
-For a this approach we will have to consider CAC and CLV we previously calculated on Assignment 1 for each customer (note that we already have it in the customer.active dataset that we then merged with tx.all to get customer.LCG) 
-Note that the CAC is always the same (this is the assumption we made in the first assignment because we don't have enough marketing financials information). 
+For a this approach we will have to consider CLV we previsouly calculated on Assignment 1 for each customer (note that we already have it in the customer.active dataset that we then merged with tx.all to get customer.LCG)
+Note that the CAC is always the same (this is the assumption we made in the first assignment because we don't have enough marketing financials information), so we won't consider it here.
 
 ```{r}
 lcg.clv <- customer.LCG %>%
-  mutate(cac=CLV.const$AC) %>% 
   group_by(segm.rec, segm.freq) %>%
-  summarise(quantity=n(),clv_tot=round(sum(CLV)),clv_avg=round(mean(CLV)),cac_tot=round(sum(cac)),cac_avg=round(mean(cac))) %>%
+  summarise(quantity=n(),clv_tot=round(sum(CLV)),clv_avg=round(mean(CLV))) %>%
+  mutate(client='client') %>%
   ungroup()
 
-lcg.clv <- melt(lcg.clv, id.vars=c('segm.rec', 'segm.freq', 'quantity'))
-
-ggplot(lcg.clv[lcg.clv$variable %in% c('clv_tot', 'cac_tot'), ], aes(x=variable, y=value, fill=variable)) +
+ggplot(lcg.clv, aes(x=client, y=clv_tot, fill=client)) +
   theme_bw() +
   theme(panel.grid = element_blank())+
-  geom_bar(stat='identity', alpha=0.6, aes(width=quantity/max(quantity))) +
-  geom_text(aes(y=value, label=value), size=3) +
+  geom_bar(stat='identity', alpha=0.6) +
+  geom_text(aes(y=max(clv_tot)/2, label=clv_tot), size=3) +
   facet_grid(segm.freq ~ segm.rec) +
-  ggtitle("LifeCycle Grids - CAC vs CLV Total")
+  ggtitle("LifeCycle Grids - CLV Total Value")
 
-ggplot(lcg.clv[lcg.clv$variable %in% c('clv_avg', 'cac_avg'), ], aes(x=variable, y=value, fill=variable)) +
+ggplot(lcg.clv, aes(x=client, y=clv_avg, fill=client)) +
   theme_bw() +
   theme(panel.grid = element_blank())+
-  geom_bar(stat='identity', alpha=0.6, aes(width=quantity/max(quantity))) +
-  geom_text(aes(y=value, label=value), size=3) +
+  geom_bar(stat='identity', alpha=0.6) +
+  geom_text(aes(y=max(clv_avg)/2, label=clv_avg), size=3) +
   facet_grid(segm.freq ~ segm.rec) +
-  ggtitle("LifeCycle Grids - CAC vs CLV Average")
+  ggtitle("LifeCycle Grids - CLV Average")
 ```
 
-Note that the width of bars depends on the quantity (i.e: the number of customers in this sub-category)
+Note that the width of bars depends on the quantity (i.e: the number of customers in this sub-category).
 
 # Assigment III, Churn analysis
 
