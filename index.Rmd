@@ -404,27 +404,34 @@ summary(customer.active)
 
 We will sketch general profiles of the active customers.
 
-First, let's have a look at how gender of the players are dispatched among the age category of the playsers :
+First, let's have a look at how gender of the players are dispatched among the playsers :
 
 ```{r}
-ggplot(customer.active)+aes(x=Age_category,fill=as.factor(Sex))+geom_bar()
+ggplot(customer.active)+aes(x=Sex)+geom_bar()
+
 ```
 
-We can see that there are more much more players between 24-35 overall. Moreover, there are always more male players in each age category. Thus, most of the players are male between 24-35.
+We can see that there are more male players overall.
 
-Now, we'll filter the customers with the demographics metrics and compare their income level :
+Now, we will consider that the general profile of a player is a male and we'll now have a look at how they are dispatched through age categories.
 
+```{r}
+ggplot(customer.active %>% filter(Sex==0))+aes(x=Age_category)+geom_bar()
+```
+
+We can see that there are much more players between 24-35 overall. Thus, most of the players are male between 24-35.
+
+Now, we'll comapre the income level of male players between 24-35 :
 
 ```{r}
 ggplot(customer.active %>% filter(Age_category == "24-35", Sex == 0)) + aes(x=Income) + geom_bar()
 ```
 
-
 Thus, we can see that the number of players is quite the same per income level. There is no significative difference. We can deduce that a general player can have any level of income.
 
-Thus, if we take into account the total number of players for demographic metrics, the profile of a general player would be a male between 24-35 and with any income level.
+Thus, if we take into account the total number of players per demographic metrics, the profile of a general player would be a male between 24-35 and with any income level.
 
-Now, let's add in our reasonning the type of player in the demographic profile we chose.
+Now, let's add in our reasonning the type of player with the general demographic profile we found.
 
 ```{r}
 ggplot(customer.active %>% filter(Age_category == "24-35", Sex == 0)) +aes(x=Age_category,fill=as.factor(CustomerType))+geom_bar()
