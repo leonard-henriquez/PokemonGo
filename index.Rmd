@@ -652,17 +652,11 @@ lcg.sessions <- customer.sessions.RF.no_purchase %>%
   mutate(client='client') %>%
   ungroup()
 
-#let's add sub-categories to better distinguish customer profiles in our grids
-lcg.sessions <- lcg.sessions %>% mutate(rec.type = ifelse(segm.rec %in% c('>85 days', '51-85 days', '31-50 days'), 'not recent', 'recent'),
- freq.type = ifelse(segm.freq %in% c('>7', '6-7'), 'frequent', 'infrequent'),
- customer.bh = interaction(rec.type, freq.type))
 
-
-ggplot(lcg.sessions, aes(x=client, y=quantity, fill=customer.bh))+
+ggplot(lcg.sessions, aes(x=client, y=quantity, fill=quantity))+
   theme_bw() +
   theme(panel.grid = element_blank())+
   geom_bar(stat='identity', alpha=0.7) +
-  geom_rect(aes(fill = customer.bh), xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf, alpha = 0.1) +
   geom_text(aes(y=max(quantity)/2, label=quantity), size=4) +
   facet_grid(segm.freq ~ segm.rec)+
   ggtitle("LifeCycle Grids: Number of sessions and underlying categorisation")
