@@ -127,7 +127,7 @@ customerID.active <- sessions.summer %>%
   distinct(CustomerID)
 ```
 
-Now we have enough to create a RFM table of active customers but we might want other informations on sessions played. So, let's create a table that summarise the information of the sessions played by customers:
+Now we have enough to create a RFM table of active customers but we might want other information on sessions played. So, let's create a table that summarize the information of the sessions played by customers:
 
 ```{r}
 customer.stats <- sessions.all %>%
@@ -138,7 +138,7 @@ customer.stats <- sessions.all %>%
 summary(customer.stats)
 ```
 
-Finally, we just need to combine the tables built previously to get our basetable:
+Finally, we just need to combine the tables built previously to get our base table:
 ```{r}
 # Add all informations to the table with all customers
 recency.max = max(customer.RFM$Recency) + 1
@@ -176,7 +176,7 @@ In order to calculate it we have 5 parameters to estimate:
 * $m$: Customer recurring contribution margin (which is equal to recurring revenues less recurring costs)
 
 Now let's make (reasonable) assumptions on those parameters.
-First, we decided to estimate all parameters excepted $m$ by values common to all customers. For $d$ or $T$, we have no reason to consider a different cost of capital or number of year out for a customer or another. For $AC$ we have no information concerning marketing operations that may have impacted it excepted the fall bonus, but we believe that it had little cost, little opportunity cost and had mostly an impact on $r$. On the opposite, we decided to estimate $m$ at a customer level based on past purchasing behaviour. For the purpose of this assignment we decided not to do the same technique for $r$ since we'll do it in assigment III.
+First, we decided to estimate all parameters excepted $m$ by values common to all customers. For $d$ or $T$, we have no reason to consider a different cost of capital or number of year out for a customer or another. For $AC$ we have no information concerning marketing operations that may have impacted it excepted the fall bonus, but we believe that it had little cost, little opportunity cost and had mostly an impact on $r$. On the opposite, we decided to estimate $m$ at a customer level based on past purchasing behavior. For the purpose of this assignment we decided not to do the same technique for $r$ since we'll do it in assignment III.
 
 **Discount Rate**
 
@@ -213,7 +213,7 @@ sprintf("Acquisition Cost is estimated to: $%.2f", CLV.AC)
 
 **Retention rate**
 
-First we'll need to define when we consider that a customer has churned. In this assignment we decided to define churning based on activity (number of sessions played) and not on financial transactions. You may check assigment 3 if you are interested in a definition of churning based on transactions.
+First we'll need to define when we consider that a customer has churned. In this assignment we decided to define churning based on activity (number of sessions played) and not on financial transactions. You may check assignment 3 if you are interested in a definition of churning based on transactions.
 
 To do that we might want to look at an histogram of the average time (in days) between two sessions. Let's do that:
 
@@ -233,8 +233,8 @@ We notice that more than 99% of customers have an average day interval between s
 
 Now to determine retention. To do this:
 
-1) We'll take a cohort of "active" as of June 30th (all the customers who played at least on session in may or june)
-2) In this cohort we'll check which one are still "active" as of October 31st (all the customers who played at least one session in september or october)
+1) We'll take a cohort of "active" as of June 30th (all the customers who played at least on session in may or June)
+2) In this cohort we'll check which one are still "active" as of October 31st (all the customers who played at least one session in September or October)
 3) The ratio of (2) over (1) represents the 4-month retention rate
 4) We will need to transform it to the annual retention rate
 
@@ -283,9 +283,9 @@ For the purpose on this assignment we decided to assume that the recurring cost 
 CLV.rc <- 0.10 * total_daily_revenues * 365 / nrow(customer)
 ```
 
-Now, let's focus on recurring revenues. First, we thought about estimating the recurring revenues by the average purchase by customer. But we figured that there were significant varation between the baskets of different customers. So we tried to apply the same reasoning at a customer level by estimating future purchases by past purchasing behaviour. But that does not account for the fact that the average amount bought in previous periods is a poor estimator future purchases. Indeed, using such model a user that has never bought anything will never buy anything, so he has inevitaly a negative CLV which should not always be the case.
+Now, let's focus on recurring revenues. First, we thought about estimating the recurring revenues by the average purchase by customer. But we figured that there were significant variation between the baskets of different customers. So we tried to apply the same reasoning at a customer level by estimating future purchases by past purchasing behavior. But that does not account for the fact that the average amount bought in previous periods is a poor estimator future purchases. Indeed, using such model a user that has never bought anything will never buy anything, so he has inevitably a negative CLV which should not always be the case.
 
-So, in the end we chose to build a linear model to estimate how much a customer is likely to buy in october based on his purchasing behaviour of the previous months.
+So, in the end we chose to build a linear model to estimate how much a customer is likely to buy in October based on his purchasing behavior of the previous months.
 
 First, let's build tables containing information of past purchases, by customer and by month:
 
@@ -350,9 +350,9 @@ sprintf("Average absolute error by customer (on training set): $%.2f", mean(abs(
 sprintf("Average absolute error by customer (on testing set): $%.2f", mean(abs(test.y-test.pred)))
 ```
 
-Not surprisingly, the results aren't incredible, but we wouldn't study Customer Analytcis if it were possible to perfectly predict what a customer will buy in the future.
+Not surprisingly, the results aren't incredible, but we wouldn't study Customer Analytics if it were possible to perfectly predict what a customer will buy in the future.
 
-Still, it is a better estimator of what's he is going to buy than the average of what he bought the past months (see results below). And our model is surely more performant to estimate what our customer will keep buying in the months after October.
+Still, it is a better estimator of what's he is going to buy than the average of what he bought the past months (see results below). And our model is surely more efficient to estimate what our customer will keep buying in the months after October.
 
 ```{r}
 print(mean(abs(test.y-rowMeans(test[,-c(1,7)]))))
@@ -394,7 +394,7 @@ CLV <- function (CLV.const, model, id) {
 }
 ```
 
-And calculate le clv for every customer:
+And calculate the CLV for every customer:
 
 ```{r}
 customer.active <- customer.active %>% mutate(CLV = CLV(CLV.const, model.revenue, CustomerID))
@@ -405,7 +405,7 @@ summary(customer.active)
 
 We will sketch general profiles of the active customers.
 
-First, let's have a look at how gender of the players are dispatched among the playsers :
+First, let's have a look at how gender of the players are dispatched among the players :
 
 ```{r}
 ggplot(customer.active)+aes(x=Sex)+geom_bar()
@@ -422,26 +422,26 @@ ggplot(customer.active %>% filter(Sex==0))+aes(x=Age_category)+geom_bar()
 
 We can see that there are much more players between 24-35 overall. Thus, most of the players are male between 24-35.
 
-Now, we'll comapre the income level of male players between 24-35 :
+Now, we'll compare the income level of male players between 24-35 :
 
 ```{r}
 ggplot(customer.active %>% filter(Age_category == "24-35", Sex == 0)) + aes(x=Income) + geom_bar()
 ```
 
-Thus, we can see that the number of players is quite the same per income level. There is no significative difference. We can deduce that a general player can have any level of income.
+Thus, we can see that the number of players is quite the same per income level. There is no significant difference. We can deduce that a general player can have any level of income.
 
 Thus, if we take into account the total number of players per demographic metrics, the profile of a general player would be a male between 24-35 and with any income level.
 
-Now, let's add in our reasonning the type of player with the general demographic profile we found.
+Now, let's add in our reasoning the type of player with the general demographic profile we found.
 
 ```{r}
 ggplot(customer.active %>% filter(Age_category == "24-35", Sex == 0)) +aes(x=Age_category,fill=as.factor(CustomerType))+geom_bar()
 
 ```
 
-Once again, we can see no significative difference between the customer type, even if the "Catchers" are the most numerous. Thus, we will consider that these players can be of any type.
+Once again, we can see no significant difference between the customer type, even if the "Catchers" are the most numerous. Thus, we will consider that these players can be of any type.
 
-Now, let's add in our reasonning the financial value using Monetary and Frequency for the demographic profile we chose.
+Now, let's add in our reasoning the financial value using Monetary and Frequency for the demographic profile we chose.
 
 
 ```{r}
@@ -490,7 +490,7 @@ We use the 'same' principle to split the recency. More specifically, we decided 
 - 14-30 : customers that bought recently (during fall period but seems to have slowed down their use of their use of package to play)
 - 31-50: customers that haven't bought for a quite long period and that could we should focus on to reengage 
 - 51-85: customers that stopped to buy after the summer period - we should especially look at those ones to improve the marketing strategy purpose between summer and fall periods
-- > 85: Finally, customers that can be considers as long-time buyers or those who follow the Pokemon Go trend of the summer but who were not really interested to evolve rapidly with Pokemon's packages
+- 85: Finally, customers that can be considers as long-time buyers or those who follow the Pokemon Go trend of the summer but who were not really interested to evolve rapidly with Pokemon's packages
 
 ```{r}
 #Creation of Grids
@@ -561,7 +561,7 @@ ggplot(lcg.bonus_type, aes(x=CustomerType, y=quantity, fill=fallbonus))+
 
 The monetary value is very interesting to improve the marketing strategy. 
 
-For a this approach we will have to consider CAC and CLV we previsouly calculated on Assignment 1 for each customer (note that we already have it in the customer.active dataset that we then merged with tx.all to get customer.LCG) 
+For a this approach we will have to consider CAC and CLV we previously calculated on Assignment 1 for each customer (note that we already have it in the customer.active dataset that we then merged with tx.all to get customer.LCG) 
 Note that the CAC is always the same (this is the assumption we made in the first assignment because we don't have enough marketing financials information). 
 
 ```{r}
@@ -594,7 +594,7 @@ Note that the width of bars depends on the quantity (i.e: the number of customer
 
 # Assigment III, Churn analysis
 
-In this assignent we want to understand more what are the variables that have an impact on churn to be able to predict churn better.
+In this assignment we want to understand more what are the variables that have an impact on churn to be able to predict churn better.
 
 First we need to be clear about churn definition. The definition provided in the assignment for churn is a customer who did not perform any transaction in fall 2018.
 
@@ -658,13 +658,13 @@ This last model seems quite good as we have almost the same AIC criterion as the
 
 Thus, we may conclude that the fall bonus, the recency of buying and the experience of the player are the three variables that explains most of the predictable churn.
 
-To avoid churning in the future, we have build marketing strategies that will maximise the experience gain by the players and minimise their recency.
+### Recommendations to reduce future churning
 
-Thus, we think about giving bonus of experience for the players during the 15 days following the purchase a product. This will give an incentive to the players to keep playing and purchasing, so it will decrease recency.
+To avoid churning in the future, we have imagined marketing strategies to maximize the experience gain by the players and minimize their recency.
 
-To maximise the experience of the player, the idea is to give bonus of experience for special quests achievements & challenges. We do not want to decrease the value of experience, it has to be a fair reward. Thus, we will propose for instance bonus of experience to the players who catched 10 pokemons of type Water during five days.
+For instance, we could give an experience bonus during the 15 days after a customer purchased purchase a product. This will give an incentive for the players to keep playing and purchasing, so it will decrease recency.
 
-### Calculation for CRM recommendation
+To maximize the experience of the player, the idea is to give bonus of experience for special quests achievements & challenges. We do not want to decrease the value of experience, it has to be a fair reward. Thus, we will propose, for instance, an experience bonus to the players who caught 10 pokemons of type Water during five days.
 
 ```{r}
 customer.active %>% group_by(CustomerType) %>% summarise(mean(Monetary),mean(Frequency),mean(CLV))
