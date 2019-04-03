@@ -400,12 +400,48 @@ customer.active <- customer.active %>% mutate(CLV = CLV(CLV.const, model.revenue
 summary(customer.active)
 ```
 
-### Profiling
+### Demographic Analysis & Profiling
+
+We will sketch general profiles of the active customers.
+
+First, let's have a look at how customer types are dispatched among gender of the players :
 
 ```{r}
-ggplot(customer.active)+aes(x=CustomerType,fill=as.factor(Sex))+geom_bar()
 ggplot(customer.active)+aes(x=Sex,fill=as.factor(CustomerType))+geom_bar()
 ```
+
+We can see on this barplot that even if there are more Men playing to PokemonGO overall, the repartitin of customer type per sex is well balanced.
+
+We'll know have a look at how customer types are dispatched among the age category of the players :
+
+```{r}
+ggplot(customer.active)+aes(x=Age_category,fill=as.factor(CustomerType))+geom_bar()
+```
+
+We can see that even if there are more players between 24-35 overall, the repartition of customer type is well balanced for each age category.
+
+The last demographic metric for which we'll have a look is how customer types are dispatched among the income level of the players :
+
+
+```{r}
+ggplot(customer.active)+aes(x=Income,fill=as.factor(CustomerType))+geom_bar()
+```
+
+Once again, the repartition of customer type is well balanced for each level income.
+
+Thus, if we take into account the total number of players for demographic metrics, the profile of a general player would be a male between 24-35 and with an income level of 3 (high).
+
+Now, let's add in our reasonning the financial value using Monetary and Frequency for the demographic profile we chose juste above.
+
+```{r}
+customer.active %>% filter(Age_category == "24-35", Sex == 0, Income == 3)  %>% group_by(CustomerType) %>% summarise(n(),mean(Monetary),mean(Frequency),mean(CLV))
+```
+
+Thus, we can complete the general profile by saying that can the general profile is a player :
+- male between 24-35 with a high income level
+- a "Catcher"
+- spending on average 4.5 with a frequency of 0.61 on the period. 
+
 
 # Assignment II, Lifecycle grids:
 
@@ -577,4 +613,4 @@ summary(model.churn.3)
 
 This last model seems quite good as we have almost the same AIC criterion as the full model, which means that this model contains almost the same amount of information as the best one in the family of the logistic regression models.
 
-Thus, we may conclude that the fal bonus, the recency of buying and the experience of the player are the three variables that explains most of the predictable churn.
+Thus, we may conclude that the fall bonus, the recency of buying and the experience of the player are the three variables that explains most of the predictable churn.
