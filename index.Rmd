@@ -620,7 +620,7 @@ ggplot(lcg.age, aes(x=Age_category, y=monetary_tot, fill=monetary_tot))+
   geom_bar(stat='identity', alpha=0.6) +
   geom_text(aes(y=max(monetary_tot)/2, label=monetary_tot), size=2) +
   facet_grid(segm.freq ~ segm.rec)+
-  ggtitle("LifeCycle Grids: Monetary Value (tot) by Age Caegory")
+  ggtitle("LifeCycle Grids: Monetary Value (tot) by Age Category")
 
 ggplot(lcg.age, aes(x=Age_category, y=monetary_avg, fill=monetary_avg))+
   theme_bw() +
