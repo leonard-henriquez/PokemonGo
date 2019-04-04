@@ -576,7 +576,110 @@ ggplot(lcg.type, aes(x=client, y=quantity, fill=CustomerType))+
 
 #### Approach in Monetary Value for transactions
 
-The monetary value is very interesting to improve the marketing strategy.
+The monetary value is very interesting to improve the marketing strategy
+
+1. Global Overview
+Let's first have a loot to the split the potential patterns from CustomerTyoe, Age, Sex and Income on the monetary value. 
+
+```{r}
+#Customer Type
+lcg.type.2 <- customer.LCG %>%
+  group_by(segm.rec, segm.freq,CustomerType) %>%
+  summarise(monetary_tot=round(sum(Monetary)),monetary_avg=round(mean(Monetary))) %>%
+  mutate(client='client') %>%
+  ungroup()
+
+ggplot(lcg.type.2, aes(x=CustomerType, y=monetary_tot, fill=monetary_tot))+
+  theme_bw() +
+  theme(panel.grid = element_blank())+
+  geom_bar(stat='identity', alpha=0.6) +
+  geom_text(aes(y=max(monetary_tot)/2, label=monetary_tot), size=2) +
+  facet_grid(segm.freq ~ segm.rec)+
+  ggtitle("LifeCycle Grids: Monetary Value (tot) by CustomerType")
+
+ggplot(lcg.type.2, aes(x=CustomerType, y=monetary_avg, fill=monetary_avg))+
+  theme_bw() +
+  theme(panel.grid = element_blank())+
+  geom_bar(stat='identity', alpha=0.6) +
+  geom_text(aes(y=max(monetary_avg)/2, label=monetary_avg), size=2) +
+  facet_grid(segm.freq ~ segm.rec)+
+  ggtitle("LifeCycle Grids: Monetary Value (avg) by CustomerType")
+```
+
+```{r}
+#Age
+lcg.age <- customer.LCG %>%
+  group_by(segm.rec, segm.freq,Age_category) %>%
+  summarise(monetary_tot=round(sum(Monetary)),monetary_avg=round(mean(Monetary))) %>%
+  mutate(client='client') %>%
+  ungroup()
+
+ggplot(lcg.age, aes(x=Age_category, y=monetary_tot, fill=monetary_tot))+
+  theme_bw() +
+  theme(panel.grid = element_blank())+
+  geom_bar(stat='identity', alpha=0.6) +
+  geom_text(aes(y=max(monetary_tot)/2, label=monetary_tot), size=2) +
+  facet_grid(segm.freq ~ segm.rec)+
+  ggtitle("LifeCycle Grids: Monetary Value (tot) by Age Caegory")
+
+ggplot(lcg.age, aes(x=Age_category, y=monetary_avg, fill=monetary_avg))+
+  theme_bw() +
+  theme(panel.grid = element_blank())+
+  geom_bar(stat='identity', alpha=0.6) +
+  geom_text(aes(y=max(monetary_avg)/2, label=monetary_avg), size=2) +
+  facet_grid(segm.freq ~ segm.rec)+
+  ggtitle("LifeCycle Grids: Monetary Value (avg) by Age Category")
+```
+
+```{r}
+#Sex
+lcg.sex <- customer.LCG %>%
+  group_by(segm.rec, segm.freq,Sex) %>%
+  summarise(monetary_tot=round(sum(Monetary)),monetary_avg=round(mean(Monetary))) %>%
+  mutate(client='client') %>%
+  ungroup()
+
+ggplot(lcg.sex, aes(x=client, y=monetary_tot, fill=Sex))+
+  theme_bw() +
+  theme(panel.grid = element_blank())+
+  geom_bar(stat='identity', position='fill',alpha=0.6) +
+  facet_grid(segm.freq ~ segm.rec)+
+  ggtitle("LifeCycle Grids: Monetary Value (volume) by Sex (proportion)")
+
+ggplot(lcg.sex, aes(x=client, y=monetary_avg, fill=Sex))+
+  theme_bw() +
+  theme(panel.grid = element_blank())+
+  geom_bar(stat='identity', position = 'fill',alpha=0.6) +
+  facet_grid(segm.freq ~ segm.rec)+
+  ggtitle("LifeCycle Grids: Monetary Value (avg) by Sex (proportion)")
+```
+
+```{r}
+#Income
+lcg.income <- customer.LCG %>%
+  group_by(segm.rec, segm.freq,Income) %>%
+  summarise(monetary_tot=round(sum(Monetary)),monetary_avg=round(mean(Monetary))) %>%
+  mutate(client='client') %>%
+  ungroup()
+
+ggplot(lcg.income, aes(x=Income, y=monetary_tot, fill=monetary_tot))+
+  theme_bw() +
+  theme(panel.grid = element_blank())+
+  geom_bar(stat='identity', alpha=0.6) +
+  geom_text(aes(y=max(monetary_tot)/2, label=monetary_tot), size=2) +
+  facet_grid(segm.freq ~ segm.rec)+
+  ggtitle("LifeCycle Grids: Monetary Value by Income")
+
+ggplot(lcg.income, aes(x=Income, y=monetary_avg, fill=monetary_avg))+
+  theme_bw() +
+  theme(panel.grid = element_blank())+
+  geom_bar(stat='identity', alpha=0.6) +
+  geom_text(aes(y=max(monetary_avg)/2, label=monetary_avg), size=2) +
+  facet_grid(segm.freq ~ segm.rec)+
+  ggtitle("LifeCycle Grids: Monetary Value by Income")
+```
+
+2. Focus on CLV
 
 For a this approach we will have to consider CLV we previsouly calculated on Assignment 1 for each customer (note that we already have it in the customer.active dataset that we then merged with tx.all to get customer.LCG)
 Note that the CAC is always the same (this is the assumption we made in the first assignment because we don't have enough marketing financials information), so we won't consider it here.
