@@ -2,6 +2,8 @@
 
 > Customer analytics project on PokemonGo
 
+This assignment was originally given at EDHEC Business School. The wording is available [here](Assignment.pdf).
+
 ## :books: Table of Contents
 
 - [Installation](#package-installation)
@@ -19,7 +21,9 @@ git clone https://github.com/leonard-henriquez/PokemonGo
 
 ## :rocket: Usage
 
-:construction: Under construction
+Open project.Rproj with RStudio and then open index.rmd
+
+You can rebuild the website from RStudio if needed
 
 ## :hammer_and_wrench: Support
 
