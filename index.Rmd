@@ -27,25 +27,26 @@ library(reshape2)
 1) First, let's start by reading the customer' data:
 ```{r}
 # Import customers data
-customer <- read.csv("input/customerdata.csv" )
+customer.raw<- read.csv("input/customerdata.csv" )
 
 # Clean data
-customer$Registrationdate <- as.Date(customer$Registrationdate)
-customer$fallbonus        <- as.factor(customer$fallbonus)
-customer$CustomerType     <- as.factor(customer$CustomerType)
-customer$Sex              <- as.factor(customer$Sex)
-customer$Income           <- as.factor(customer$Income)
+customer.raw$Registrationdate <- as.Date(customer.raw$Registrationdate)
+customer.raw$fallbonus        <- as.factor(customer.raw$fallbonus)
+customer.raw$CustomerType     <- as.factor(customer.raw$CustomerType)
+customer.raw$Sex              <- as.factor(customer.raw$Sex)
+customer.raw$Income           <- as.factor(customer.raw$Income)
 
 #Let's create categories of Age (that could be relevant for the rest) :
-customer <- customer %>%
+customer.raw <- customer.raw %>%
   mutate(Age_category=
     ifelse(between(Age, 6, 17), '6-17',
     ifelse(between(Age, 18, 23), '18-23',
     ifelse(between(Age, 24, 35), '24-35',
     ifelse(between(Age, 36, 50), '36-50', '>51'
   )))))
-customer$Age_category <- factor(customer$Age_category, levels=c('6-17', '18-23', '24-35', '36-50', '>51'))
+customer.raw$Age_category <- factor(customer.raw$Age_category, levels=c('6-17', '18-23', '24-35', '36-50', '>51'))
 
+customer <- customer.raw
 # And let's check what we have
 summary(customer)
 ```
@@ -693,7 +694,7 @@ model.churn.full <- glm(Churned ~ .,
 summary(model.churn.full)
 ```
 
-So we want a model with an AIC as close as possible from 1500.
+So we want a model with an AIC as close as possible from this one.
 
 First, let's build our first model only based on the fall bonus:
 
@@ -740,3 +741,35 @@ To maximize the experience of the player, the idea is to give bonus of experienc
 ```{r}
 customer.active %>% group_by(CustomerType) %>% summarise(mean(Monetary),mean(Frequency),mean(CLV))
 ```
+
+
+# Key drivers of the valuation
+
+```{r}
+customer.model <- customer.raw %>% mutate(CLV = CLV(CLV.const, model.revenue, CustomerID)) %>% left_join(customer.sessions, by='CustomerID') %>% select(-X, -CustomerID)
+
+
+model.CLV <- lm(CLV ~ count + Sex + fallbonus + Income -1, data=customer.model)
+summary(model.CLV)
+```
+
+```{r}
+library(leaps)
+
+selection <- regsubsets(CLV~. -1, data=customer.model, nvmax=15, method="forward")
+
+# we display the BIC selection
+plot(selection, scale="bic")
+
+```
+
+```{r}
+summary(customer.model)
+```
+
+
+```{r}
+customer.model %>% mutate('Sessions7+' = count > 7) %>% group_by('Sessions7+') %>% summarise(mean(CLV))
+```
+
+
