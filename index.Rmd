@@ -18,6 +18,7 @@ library(ggplot2)
 library(caret)
 library(xgboost)
 library(reshape2)
+library(leaps)
 ```
 
 # Assignment I, Basetable
@@ -610,9 +611,9 @@ Note that the width of bars depends on the quantity (i.e: the number of customer
 
 #### Lifecycle grids for sessions
 
-In this case, it could be also interesting to consider sessions also to suggest maketing strategies for Niantic. 
+In this case, it could be also interesting to consider sessions also to suggest maketing strategies for Niantic.
 
-So let's do lifecycle grids but for sessions this time. 
+So let's do lifecycle grids but for sessions this time.
 
 
 ```{r}
@@ -754,8 +755,6 @@ summary(model.CLV)
 ```
 
 ```{r}
-library(leaps)
-
 selection <- regsubsets(CLV~. -1, data=customer.model, nvmax=15, method="forward")
 
 # we display the BIC selection
@@ -771,5 +770,3 @@ summary(customer.model)
 ```{r}
 customer.model %>% mutate('Sessions7+' = count > 7) %>% group_by('Sessions7+') %>% summarise(mean(CLV))
 ```
-
-
