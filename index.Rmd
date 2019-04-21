@@ -21,6 +21,8 @@ library(reshape2)
 library(leaps)
 ```
 
+This assignment was originally given at EDHEC Business School. The wording is available [here](Assignment.pdf).
+
 # Assignment I, Basetable
 
 ### Data importation and cleaning

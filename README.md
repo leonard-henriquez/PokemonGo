@@ -1,4 +1,4 @@
-# PokemonGo customer analytics [language](https://img.shields.io/badge/language-R-blue.svg)
+# PokemonGo customer analytics ![language](https://img.shields.io/badge/language-R-blue.svg)
 
 > Customer analytics project on PokemonGo
 
