@@ -9,3 +9,7 @@
 *.Rdx   binary
 *.Rmd	text
 *.R  	text
+
+*.css linguist-detectable=false
+*.scss linguist-detectable=false
+*.sass linguist-detectable=false
